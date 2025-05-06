@@ -1,18 +1,20 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Button } from "~/components/Button";
+import { FormProvider, TagInput, TypeSelector } from "~/components/qrCode";
 import { QRCodeEntry } from "~/core/qrCode";
 import { addQRCode, getQRCodeById, updateQRCode } from "~/core/qrCodeStorage";
 
@@ -32,10 +34,38 @@ export default function AddEditQRCodeScreen() {
   const [newTag, setNewTag] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [qrCodeType, setQRCodeType] = useState<
+    "url" | "vcard" | "text" | "email" | "wifi"
+  >((params.type as "url" | "vcard" | "text" | "email" | "wifi") || "text");
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [phone, setPhone] = useState("");
+  const [fax, setFax] = useState("");
+  const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const [emailAddress, setEmailAddress] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+
+  const [url, setUrl] = useState("");
+
+  const [ssid, setSsid] = useState("");
+  const [password, setPassword] = useState("");
+  const [isHidden, setIsHidden] = useState(false);
+  const [encryption, setEncryption] = useState<"WPA" | "WEP" | "nopass">("WPA");
 
   useEffect(() => {
     const fetchQRCode = async () => {
-      // If we have an ID, we're editing an existing QR code
       if (params.id) {
         setIsEditing(true);
         setLoading(true);
@@ -46,6 +76,78 @@ export default function AddEditQRCodeScreen() {
             setContent(qrCode.content);
             setDescription(qrCode.description || "");
             setTags(qrCode.tags);
+
+            if (qrCode.type) {
+              setQRCodeType(qrCode.type);
+
+              if (qrCode.type === "url") {
+                setUrl(qrCode.content);
+              } else if (qrCode.type === "vcard") {
+                try {
+                  const lines = qrCode.content.split("\n");
+                  for (const line of lines) {
+                    if (line.startsWith("FN:")) {
+                      const fullName = line.substring(3).split(" ");
+                      setFirstName(fullName[0] || "");
+                      setLastName(fullName.slice(1).join(" ") || "");
+                    } else if (line.startsWith("TEL;CELL:")) {
+                      setMobile(line.substring(9));
+                    } else if (line.startsWith("TEL;WORK:")) {
+                      setPhone(line.substring(9));
+                    } else if (line.startsWith("TEL;FAX:")) {
+                      setFax(line.substring(8));
+                    } else if (line.startsWith("EMAIL:")) {
+                      setEmail(line.substring(6));
+                    } else if (line.startsWith("ORG:")) {
+                      setCompany(line.substring(4));
+                    } else if (line.startsWith("TITLE:")) {
+                      setJobTitle(line.substring(6));
+                    } else if (line.startsWith("ADR:;;")) {
+                      const address = line.substring(6).split(";");
+                      setStreet(address[0] || "");
+                      setCity(address[1] || "");
+                      setState(address[2] || "");
+                      setZip(address[3] || "");
+                      setCountry(address[4] || "");
+                    } else if (line.startsWith("URL:")) {
+                      setWebsite(line.substring(4));
+                    }
+                  }
+                } catch (error) {
+                  console.error("Error parsing vCard:", error);
+                }
+              } else if (qrCode.type === "email") {
+                try {
+                  const mailtoRegex =
+                    /^mailto:([^?]*)(?:\?subject=([^&]*))?(?:&body=(.*))?$/;
+                  const match = qrCode.content.match(mailtoRegex);
+                  if (match) {
+                    setEmailAddress(decodeURIComponent(match[1] || ""));
+                    setEmailSubject(decodeURIComponent(match[2] || ""));
+                    setEmailMessage(decodeURIComponent(match[3] || ""));
+                  }
+                } catch (error) {
+                  console.error("Error parsing mailto:", error);
+                }
+              } else if (qrCode.type === "wifi") {
+                try {
+                  const wifiRegex = /WIFI:S:(.*?);T:(.*?);P:(.*?);H:(.*?);/;
+                  const match = qrCode.content.match(wifiRegex);
+                  if (match) {
+                    setSsid(match[1] || "");
+                    setEncryption(
+                      (match[2] as "WPA" | "WEP" | "nopass") || "WPA"
+                    );
+                    setPassword(match[3] || "");
+                    setIsHidden(match[4] === "true");
+                  }
+                } catch (error) {
+                  console.error("Error parsing WiFi:", error);
+                }
+              } else {
+                setContent(qrCode.content);
+              }
+            }
           }
         } catch (error) {
           console.error("Error fetching QR code:", error);
@@ -59,13 +161,46 @@ export default function AddEditQRCodeScreen() {
     fetchQRCode();
   }, [params.id, t]);
 
+  const generateContent = () => {
+    switch (qrCodeType) {
+      case "url":
+        return url;
+      case "vcard":
+        return `BEGIN:VCARD
+              VERSION:3.0
+              FN:${firstName} ${lastName}
+              TEL;CELL:${mobile}
+              TEL;WORK:${phone}
+              TEL;FAX:${fax}
+              EMAIL:${email}
+              ORG:${company}
+              TITLE:${jobTitle}
+              ADR:;;${street};${city};${state};${zip};${country}
+              URL:${website}
+              END:VCARD`;
+      case "email":
+        return `mailto:${emailAddress}?subject=${encodeURIComponent(
+          emailSubject
+        )}&body=${encodeURIComponent(emailMessage)}`;
+      case "wifi":
+        return `WIFI:S:${ssid};T:${encryption};P:${password};H:${
+          isHidden ? "true" : "false"
+        };`;
+      case "text":
+      default:
+        return content;
+    }
+  };
+
   const handleSave = async () => {
     if (!name) {
       Alert.alert(t("error"), t("nameRequired"));
       return;
     }
 
-    if (!content) {
+    const generatedContent = generateContent();
+
+    if (!generatedContent) {
       Alert.alert(t("error"), t("contentRequired"));
       return;
     }
@@ -74,7 +209,8 @@ export default function AddEditQRCodeScreen() {
       const qrCode: QRCodeEntry = {
         id: params.id || Date.now().toString(),
         name,
-        content,
+        content: generatedContent,
+        type: qrCodeType,
         tags,
         description,
         createdAt: new Date().toISOString(),
@@ -117,7 +253,12 @@ export default function AddEditQRCodeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-corp-white">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
+      className="bg-corp-white"
+    >
       <Stack.Screen
         options={{
           title: isEditing ? t("editQRCode") : t("addQRCode"),
@@ -125,7 +266,69 @@ export default function AddEditQRCodeScreen() {
         }}
       />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View className="flex-1 px-6 py-4">
+        <ScrollView
+          className="flex-1 px-6 py-4"
+          contentContainerStyle={{ paddingBottom: 80 }}
+          showsVerticalScrollIndicator={true}
+        >
+          {!isEditing && (
+            <TypeSelector
+              selectedType={qrCodeType}
+              onTypeSelect={setQRCodeType}
+            />
+          )}
+
+          <FormProvider
+            type={qrCodeType}
+            content={content}
+            isReadOnly={isEditing || !!params.content}
+            onContentChange={setContent}
+            url={url}
+            onUrlChange={setUrl}
+            emailAddress={emailAddress}
+            emailSubject={emailSubject}
+            emailMessage={emailMessage}
+            onEmailAddressChange={setEmailAddress}
+            onEmailSubjectChange={setEmailSubject}
+            onEmailMessageChange={setEmailMessage}
+            firstName={firstName}
+            lastName={lastName}
+            mobile={mobile}
+            phone={phone}
+            fax={fax}
+            email={email}
+            company={company}
+            jobTitle={jobTitle}
+            street={street}
+            city={city}
+            zip={zip}
+            state={state}
+            country={country}
+            website={website}
+            onFirstNameChange={setFirstName}
+            onLastNameChange={setLastName}
+            onMobileChange={setMobile}
+            onPhoneChange={setPhone}
+            onFaxChange={setFax}
+            onEmailChange={setEmail}
+            onCompanyChange={setCompany}
+            onJobTitleChange={setJobTitle}
+            onStreetChange={setStreet}
+            onCityChange={setCity}
+            onZipChange={setZip}
+            onStateChange={setState}
+            onCountryChange={setCountry}
+            onWebsiteChange={setWebsite}
+            ssid={ssid}
+            password={password}
+            isHidden={isHidden}
+            encryption={encryption}
+            onSsidChange={setSsid}
+            onPasswordChange={setPassword}
+            onIsHiddenChange={setIsHidden}
+            onEncryptionChange={setEncryption}
+          />
+
           <View className="mb-4">
             <Text className="mb-2 text-base font-medium text-corp-grey">
               {t("name")}
@@ -139,41 +342,15 @@ export default function AddEditQRCodeScreen() {
             />
           </View>
 
-          <View className="mb-4">
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("tags")}
-            </Text>
-            <View className="mb-2 flex-row flex-wrap">
-              {tags.map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  onPress={() => removeTag(tag)}
-                  className="m-1 flex-row items-center rounded-full border border-corp-teal bg-white px-3 py-1"
-                >
-                  <Text className="mr-1 text-corp-grey">{tag}</Text>
-                  <Ionicons name="close-circle" size={16} color="#50505E" />
-                </TouchableOpacity>
-              ))}
-            </View>
-            <View className="flex-row">
-              <TextInput
-                className="flex-1 rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
-                value={newTag}
-                onChangeText={setNewTag}
-                placeholder={t("addTag")}
-                placeholderTextColor="#767683"
-                onSubmitEditing={addTag}
-              />
-              <TouchableOpacity
-                className="ml-2 items-center justify-center rounded-lg bg-corp-teal px-4"
-                onPress={addTag}
-              >
-                <Ionicons name="add" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <TagInput
+            tags={tags}
+            newTag={newTag}
+            onNewTagChange={setNewTag}
+            onAddTag={addTag}
+            onRemoveTag={removeTag}
+          />
 
-          <View className="mb-4">
+          <View className="mb-8">
             <Text className="mb-2 text-base font-medium text-corp-grey">
               {t("description")}
             </Text>
@@ -189,44 +366,21 @@ export default function AddEditQRCodeScreen() {
             />
           </View>
 
-          <View className="mb-8">
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("qrContent")}
-            </Text>
-            {!isEditing && !params.content ? (
-              <TextInput
-                className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
-                value={content}
-                onChangeText={setContent}
-                placeholder={t("enterQrContentPlaceholder")}
-                placeholderTextColor="#767683"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                autoCapitalize="none"
-              />
-            ) : (
-              <View className="rounded-lg border border-corp-mid-grey bg-white p-4">
-                <Text className="text-corp-grey">{content}</Text>
-              </View>
-            )}
-          </View>
-
           <View className="mb-8 flex-row">
-            <Button
-              title={isEditing ? t("update") : t("save")}
-              onPress={handleSave}
-              className="mr-2 flex-1 bg-corp-dark-teal"
-            />
             <Button
               title={t("cancel")}
               onPress={() => router.dismiss()}
               type="secondary"
-              className="ml-2 flex-1 border border-corp-grey bg-white"
+              className="mr-2 flex-1 border border-corp-grey bg-white"
+            />
+            <Button
+              title={isEditing ? t("update") : t("save")}
+              onPress={handleSave}
+              className="ml-2 flex-1 bg-corp-dark-teal"
             />
           </View>
-        </View>
+        </ScrollView>
       </TouchableWithoutFeedback>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

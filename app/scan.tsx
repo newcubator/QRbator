@@ -19,7 +19,7 @@ export default function ScanScreen() {
     getCameraPermissions();
   }, []);
 
-  const handleBarcodeScanned = ({
+  const handleBarcodeScanned = async ({
     type,
     data,
   }: {
@@ -27,6 +27,7 @@ export default function ScanScreen() {
     data: string;
   }) => {
     setScanned(true);
+
     router.push({
       pathname: "/add-edit",
       params: { content: data, type, origin: "scan" },
@@ -66,7 +67,19 @@ export default function ScanScreen() {
         <CameraView
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
           barcodeScannerSettings={{
-            barcodeTypes: ["qr"],
+            barcodeTypes: [
+              "qr",
+              "pdf417",
+              "aztec",
+              "datamatrix",
+              "code128",
+              "code39",
+              "code93",
+              "ean13",
+              "ean8",
+              "itf14",
+              "upc_e",
+            ],
           }}
           style={StyleSheet.absoluteFillObject}
         />

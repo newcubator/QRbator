@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import Papa from "papaparse";
 import React from "react";
@@ -17,6 +18,7 @@ import {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const handleExportAll = async (format: "json" | "csv") => {
     try {
@@ -96,6 +98,7 @@ export default function SettingsScreen() {
             id: row.id || Date.now().toString(),
             name: row.name,
             content: row.content,
+            type: row.type || "text",
             description: row.description,
             createdAt: row.createdAt || new Date().toISOString(),
             tags: row.tags ? row.tags.split(";") : [],
@@ -167,6 +170,10 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleOpenOnboarding = () => {
+    router.push("/onboarding");
+  };
+
   return (
     <View className="flex-1 bg-corp-white px-6 py-4">
       <Animated.View
@@ -207,9 +214,6 @@ export default function SettingsScreen() {
           .reduceMotion(ReduceMotion.Never)}
         className="mb-8"
       >
-        <Text className="mb-4 text-lg font-medium text-corp-grey">
-          {t("importData")}
-        </Text>
         <TouchableOpacity
           onPress={handleImportFile}
           className="mb-4 w-full items-center rounded-lg bg-corp-purple/10 p-6"
@@ -227,6 +231,27 @@ export default function SettingsScreen() {
       <Animated.View
         entering={FadeInDown.duration(400)
           .delay(600)
+          .reduceMotion(ReduceMotion.Never)}
+        className="mb-8"
+      >
+        <TouchableOpacity
+          onPress={handleOpenOnboarding}
+          className="mb-4 w-full items-center rounded-lg bg-corp-teal/20 p-6 border border-corp-teal"
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={32}
+            color="#2A8A85"
+          />
+          <Text className="mt-2 text-center font-medium text-corp-teal-dark">
+            {t("settings.viewOnboarding")}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View
+        entering={FadeInDown.duration(400)
+          .delay(700)
           .reduceMotion(ReduceMotion.Never)}
         className="mb-8"
       >
