@@ -163,6 +163,57 @@ exports[`<SettingsScreen /> matches snapshot 1`] = `
     <Text
       className="mb-4 text-lg font-medium text-corp-grey"
     >
+      onboarding
+    </Text>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
+    >
+      Icon
+      <Text
+        className="mt-2 text-center font-medium text-corp-teal"
+      >
+        viewOnboarding
+      </Text>
+    </View>
+  </View>
+  <View
+    className="mb-8"
+    entering={{}}
+  >
+    <Text
+      className="mb-4 text-lg font-medium text-corp-grey"
+    >
       dangerZone
     </Text>
     <View

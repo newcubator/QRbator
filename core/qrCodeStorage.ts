@@ -13,17 +13,73 @@ const getDatabase = (): Promise<SQLite.SQLiteDatabase> => {
 
 export const initDB = async (): Promise<void> => {
   const db = await getDatabase();
-  await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS qrcodes (
-      id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL,
-      content TEXT NOT NULL,
-      tags TEXT, -- Stored as JSON string
-      createdAt TEXT NOT NULL, -- Changed to TEXT for ISO String
-      description TEXT -- Changed from notes to description
-    );
-  `);
+
+  try {
+    // First create the table if it doesn't exist with the type column already included
+    await db.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS qrcodes (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        tags TEXT, -- Stored as JSON string
+        createdAt TEXT NOT NULL, -- Changed to TEXT for ISO String
+        description TEXT, -- Changed from notes to description
+        type TEXT DEFAULT 'text' -- Type of QR code: url, vcard, text, email
+      );
+    `);
+
+    // Check if type column exists (for existing installations)
+    const tableInfo = await db.getAllAsync<any>("PRAGMA table_info(qrcodes);");
+    const hasTypeColumn = tableInfo.some((column) => column.name === "type");
+
+    // Only add the type column if it doesn't exist
+    // This is mainly for older installations that need migration
+    if (!hasTypeColumn && tableInfo.length > 0) {
+      try {
+        await db.execAsync(
+          "ALTER TABLE qrcodes ADD COLUMN type TEXT DEFAULT 'text';"
+        );
+        console.log("Added 'type' column to qrcodes table");
+
+        // Update existing records based on content
+        const allRecords = await db.getAllAsync<any>(
+          "SELECT id, content FROM qrcodes WHERE type IS NULL OR type = '';"
+        );
+
+        for (const record of allRecords) {
+          let detectedType = "text";
+
+          // Simple detection logic
+          if (
+            record.content.startsWith("http://") ||
+            record.content.startsWith("https://")
+          ) {
+            detectedType = "url";
+          } else if (record.content.startsWith("BEGIN:VCARD")) {
+            detectedType = "vcard";
+          } else if (record.content.startsWith("mailto:")) {
+            detectedType = "email";
+          } else if (record.content.includes("WIFI:")) {
+            detectedType = "wifi";
+          }
+
+          await db.runAsync("UPDATE qrcodes SET type = ? WHERE id = ?;", [
+            detectedType,
+            record.id,
+          ]);
+        }
+      } catch (error) {
+        console.error("Migration error:", error);
+        // If the error is about duplicate column, we can ignore it as the column already exists
+        if (!String(error).includes("duplicate column")) {
+          throw error; // Re-throw other errors
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Database initialization error:", error);
+  }
 };
 
 const parseTags = (tagsString: string | null | undefined): string[] => {
@@ -42,6 +98,7 @@ const mapRowToQRCodeEntry = (row: any): QRCodeEntry => {
     id: row.id,
     name: row.name,
     content: row.content,
+    type: row.type || "text", // Default to 'text' if type is missing
     tags: parseTags(row.tags),
     createdAt: row.createdAt,
     description: row.description ?? undefined,
@@ -75,7 +132,7 @@ export const addQRCode = async (
   const tagsString = JSON.stringify(qrCode.tags || []);
 
   await db.runAsync(
-    "INSERT INTO qrcodes (id, name, content, tags, createdAt, description) VALUES (?, ?, ?, ?, ?, ?);",
+    "INSERT INTO qrcodes (id, name, content, tags, createdAt, description, type) VALUES (?, ?, ?, ?, ?, ?, ?);",
     [
       id,
       qrCode.name,
@@ -83,6 +140,7 @@ export const addQRCode = async (
       tagsString,
       qrCode.createdAt,
       qrCode.description || null,
+      qrCode.type || "text", // Default to 'text' if type is missing
     ]
   );
   return id;
@@ -103,13 +161,14 @@ export const updateQRCode = async (qrCode: QRCodeEntry): Promise<void> => {
   const db = await getDatabase();
   const tagsString = JSON.stringify(qrCode.tags || []);
   const result = await db.runAsync(
-    "UPDATE qrcodes SET name = ?, content = ?, tags = ?, description = ?, createdAt = ? WHERE id = ?;",
+    "UPDATE qrcodes SET name = ?, content = ?, tags = ?, description = ?, createdAt = ?, type = ? WHERE id = ?;",
     [
       qrCode.name,
       qrCode.content,
       tagsString,
       qrCode.description || null,
       qrCode.createdAt,
+      qrCode.type || "text", // Default to 'text' if type is missing
       qrCode.id,
     ]
   );
@@ -140,8 +199,8 @@ export const importQRCodes = async (qrCodes: QRCodeEntry[]): Promise<void> => {
 
       const tagsString = JSON.stringify(qrCode.tags || []);
       await db.runAsync(
-        `INSERT OR REPLACE INTO qrcodes (id, name, content, tags, createdAt, description) 
-         VALUES (?, ?, ?, ?, ?, ?);`,
+        `INSERT OR REPLACE INTO qrcodes (id, name, content, tags, createdAt, description, type) 
+         VALUES (?, ?, ?, ?, ?, ?, ?);`,
         [
           qrCode.id,
           qrCode.name,
@@ -149,6 +208,7 @@ export const importQRCodes = async (qrCodes: QRCodeEntry[]): Promise<void> => {
           tagsString,
           qrCode.createdAt,
           qrCode.description || null,
+          qrCode.type || "text", // Default to 'text' if type is missing
         ]
       );
     }

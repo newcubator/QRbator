@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system";
+import * as Linking from "expo-linking";
 import {
   Stack,
   router,
@@ -8,7 +9,7 @@ import {
   useLocalSearchParams,
 } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -57,6 +58,47 @@ export default function QRCodeDetailScreen() {
     }, [fetchQRCode])
   );
 
+  const isValidUrl = useCallback(
+    async (text: string, type?: string): Promise<boolean> => {
+      if (type === "text") return false;
+
+      if (!text) return false;
+
+      const hasHttpProtocol =
+        text.startsWith("http://") || text.startsWith("https://");
+
+      const textToCheck = hasHttpProtocol ? text : `https://${text}`;
+
+      try {
+        return await Linking.canOpenURL(textToCheck);
+      } catch (e) {
+        return false;
+      }
+    },
+    []
+  );
+
+  const [canOpenUrl, setCanOpenUrl] = useState(false);
+
+  useEffect(() => {
+    if (qrCode?.content) {
+      isValidUrl(qrCode.content, qrCode.type).then(setCanOpenUrl);
+    } else {
+      setCanOpenUrl(false);
+    }
+  }, [qrCode, isValidUrl]);
+
+  const handleOpenUrl = async () => {
+    if (qrCode?.content) {
+      try {
+        await Linking.openURL(qrCode.content);
+      } catch (error) {
+        console.error("Error opening URL:", error);
+        Alert.alert(t("error"), t("failedToOpenUrl"));
+      }
+    }
+  };
+
   const handleCopyContent = async () => {
     if (qrCode) {
       await Clipboard.setStringAsync(qrCode.content);
@@ -93,7 +135,6 @@ export default function QRCodeDetailScreen() {
       if (format === "json") {
         content = JSON.stringify(qrCode, null, 2);
       } else {
-        // Simple CSV format
         const headers = "id,name,content,description,createdAt,tags\n";
         const tags = qrCode.tags.join(";");
         content = `${headers}"${qrCode.id}","${qrCode.name}","${
@@ -209,6 +250,36 @@ export default function QRCodeDetailScreen() {
 
         <Animated.View
           entering={FadeInDown.duration(400)
+            .delay(250)
+            .reduceMotion(ReduceMotion.Never)}
+          className="mb-6"
+        >
+          <Text className="mb-2 text-base font-medium text-corp-grey">
+            {t("qrCodeType")}
+          </Text>
+          <View className="flex-row items-center">
+            <Ionicons
+              name={
+                qrCode.type === "url"
+                  ? "link"
+                  : qrCode.type === "vcard"
+                  ? "person"
+                  : qrCode.type === "email"
+                  ? "mail"
+                  : "text"
+              }
+              size={20}
+              color="#50505E"
+              style={{ marginRight: 8 }}
+            />
+            <Text className="text-lg font-medium text-corp-grey uppercase">
+              {qrCode.type || "text"}
+            </Text>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          entering={FadeInDown.duration(400)
             .delay(300)
             .reduceMotion(ReduceMotion.Never)}
           className="mb-6"
@@ -313,6 +384,18 @@ export default function QRCodeDetailScreen() {
                 {t("exportCsv")}
               </Text>
             </TouchableOpacity>
+
+            {canOpenUrl && (
+              <TouchableOpacity
+                onPress={handleOpenUrl}
+                className="mt-4 w-full flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
+              >
+                <Ionicons name="open-outline" size={18} color="#FFFFFF" />
+                <Text className="ml-2 text-center font-medium text-white">
+                  {t("open")}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </Animated.View>
 

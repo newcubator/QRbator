@@ -92,11 +92,7 @@ export default function OnboardingScreen() {
                 ? t("onboarding.getStarted")
                 : t("onboarding.next")
             }
-            icon={
-              step === steps.length - 1
-                ? "checkmark-outline"
-                : "arrow-forward-outline"
-            }
+            icon={step === steps.length - 1 ? "checkmark-outline" : undefined}
             onPress={handleNext}
             className="w-full mt-8"
           />
