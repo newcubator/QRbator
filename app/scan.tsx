@@ -1,5 +1,5 @@
 import { Camera, CameraView } from "expo-camera";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
@@ -9,6 +9,7 @@ export default function ScanScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const { t } = useTranslation();
+
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -44,7 +45,7 @@ export default function ScanScreen() {
     );
   }
 
-  if (hasPermission === false) {
+  if (!hasPermission) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-corp-white px-6">
         <Text className="mb-4 text-center text-lg text-corp-grey">

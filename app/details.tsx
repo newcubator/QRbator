@@ -5,9 +5,9 @@ import * as Linking from "expo-linking";
 import {
   Stack,
   router,
-  useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
+import { useFocusEffect } from '@react-navigation/native';
 import * as Sharing from "expo-sharing";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,17 +30,26 @@ export default function QRCodeDetailScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const [qrCode, setQrCode] = useState<QRCodeEntry | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchQRCode = useCallback(async () => {
     if (params.id) {
       setLoading(true);
       try {
         const data = await getQRCodeById(params.id);
+        
         if (data?.content && data?.content.length >= 5000) {
-          return deleteQRCode(params.id);
+          await deleteQRCode(params.id);
+          Alert.alert(
+            t("error"),
+            t("contentTooLarge", { maxLength: 5000 }),
+            [{ text: t("ok"), onPress: () => router.replace("/home") }]
+          );
+          return;
         }
+  
         setQrCode(data);
+
       } catch (error) {
         console.error("Error fetching QR code:", error);
         setQrCode(null);
@@ -51,7 +60,6 @@ export default function QRCodeDetailScreen() {
     } else {
       console.warn("No ID provided to details screen.");
       setQrCode(null);
-      setLoading(false);
     }
   }, [params.id, t]);
 

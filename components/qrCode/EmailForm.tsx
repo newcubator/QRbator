@@ -1,4 +1,5 @@
-import { EMAIL_FIELD_MAX_LENGTH, MAX_LENGTH_INPUT_LENGTH, PLACEHOLDER_TEXT_COLOR, SUBJECT_FIELD_MAX_LENGTH } from "@/constants/config";
+import { EMAIL_FIELD_MAX_LENGTH, MAX_LENGTH_INPUT_LENGTH, SUBJECT_FIELD_MAX_LENGTH } from "@/constants/config";
+import { PLACEHOLDER_TEXT_COLOR } from "@/constants/colors";
 import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
