@@ -19,7 +19,7 @@ export const TypeSelector = ({
   const renderTypeButton = (
     type: QRCodeType,
     iconName: typeof Ionicons.defaultProps.name,
-    label: string
+    label: string,
   ) => {
     const isSelected = selectedType === type;
     const bgColor = isSelected

@@ -136,7 +136,7 @@ export default function AddEditQRCodeScreen() {
                   if (match) {
                     setSsid(match[1] || "");
                     setEncryption(
-                      (match[2] as "WPA" | "WEP" | "nopass") || "WPA"
+                      (match[2] as "WPA" | "WEP" | "nopass") || "WPA",
                     );
                     setPassword(match[3] || "");
                     setIsHidden(match[4] === "true");
@@ -180,7 +180,7 @@ export default function AddEditQRCodeScreen() {
               END:VCARD`;
       case "email":
         return `mailto:${emailAddress}?subject=${encodeURIComponent(
-          emailSubject
+          emailSubject,
         )}&body=${encodeURIComponent(emailMessage)}`;
       case "wifi":
         return `WIFI:S:${ssid};T:${encryption};P:${password};H:${
@@ -222,11 +222,7 @@ export default function AddEditQRCodeScreen() {
         await addQRCode(qrCode);
       }
 
-      if (params.origin === "scan") {
-        router.dismissAll();
-      } else {
-        router.dismiss();
-      }
+      router.replace("/home");
     } catch (error) {
       console.error("Error saving QR code:", error);
       Alert.alert(t("error"), t("saveFailed"));

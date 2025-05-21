@@ -21,8 +21,6 @@ import { Button } from "~/components/Button";
 import { QRCodeEntry } from "~/core/qrCode";
 import { getAllQRCodes, getQRCodesByTag, initDB } from "~/core/qrCodeStorage";
 
-const ACCENT_COLOR = "#FF8552";
-
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -36,7 +34,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const init = async () => {
-      try {
+      try { 
         await initDB();
         setIsInitialized(true);
       } catch (error) {}
@@ -59,7 +57,7 @@ export default function HomeScreen() {
 
       const allCodesForTags = await getAllQRCodes();
       const uniqueTags = Array.from(
-        new Set(allCodesForTags.flatMap((code) => code.tags))
+        new Set(allCodesForTags.flatMap((code) => code.tags)),
       );
       setAllTags(uniqueTags);
     } catch (error) {
@@ -70,7 +68,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadQRCodes();
-    }, [loadQRCodes])
+    }, [loadQRCodes]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -133,7 +131,7 @@ export default function HomeScreen() {
 
       <View className="mb-4 flex-row justify-between">
         <TouchableOpacity
-          onPress={() => router.push("/scan")}
+          onPress={() => router.replace("/scan")}
           className="w-[31%] items-center rounded-lg bg-corp-grey p-3"
         >
           <Ionicons name="scan" size={24} color="#FFFFFF" />
@@ -213,7 +211,7 @@ export default function HomeScreen() {
             <Button
               title={t("scanNewQRCode")}
               icon="scan"
-              onPress={() => router.push("/scan")}
+              onPress={() => router.replace("/scan")}
               className="mt-4"
             />
           </View>

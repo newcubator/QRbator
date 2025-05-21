@@ -1,4 +1,4 @@
-import { Resource } from 'i18next';
+import { Resource } from "i18next";
 
 export const fallbackChecker = (resources: Resource, fallbackLng: string) => {
   const languages = Object.keys(resources);
@@ -6,7 +6,7 @@ export const fallbackChecker = (resources: Resource, fallbackLng: string) => {
 
   if (!hasFallback) {
     throw new Error(
-      `fallbackLng  "${fallbackLng}", is not present in your resources, please check your config, languages available: ${languages.join(', ')}`
+      `fallbackLng  "${fallbackLng}", is not present in your resources, please check your config, languages available: ${languages.join(", ")}`,
     );
   }
   return fallbackLng;

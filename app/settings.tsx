@@ -132,7 +132,7 @@ export default function SettingsScreen() {
                 await importQRCodes(qrCodes);
                 Alert.alert(
                   t("success"),
-                  t("importSuccessful", { count: qrCodes.length })
+                  t("importSuccessful", { count: qrCodes.length }),
                 );
               } catch (error) {
                 console.error("Error importing QR codes:", error);
@@ -140,7 +140,7 @@ export default function SettingsScreen() {
               }
             },
           },
-        ]
+        ],
       );
     } catch (error) {
       console.error("Error picking file:", error);

@@ -9,7 +9,7 @@ describe("<Button />", () => {
   test("renders correctly with title", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Test Button" onPress={onPressMock} />
+      <Button title="Test Button" onPress={onPressMock} />,
     );
 
     expect(getByText("Test Button")).toBeTruthy();
@@ -18,7 +18,7 @@ describe("<Button />", () => {
   test("calls onPress when pressed", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Test Button" onPress={onPressMock} />
+      <Button title="Test Button" onPress={onPressMock} />,
     );
 
     fireEvent.press(getByText("Test Button"));
@@ -28,7 +28,7 @@ describe("<Button />", () => {
   test("renders with icon", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Test Button" onPress={onPressMock} icon="star" />
+      <Button title="Test Button" onPress={onPressMock} icon="star" />,
     );
 
     expect(getByText("Test Button")).toBeTruthy();
@@ -37,7 +37,11 @@ describe("<Button />", () => {
   test("applies secondary styling correctly", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Secondary Button" onPress={onPressMock} type="secondary" />
+      <Button
+        title="Secondary Button"
+        onPress={onPressMock}
+        type="secondary"
+      />,
     );
 
     const button = getByText("Secondary Button");
@@ -49,7 +53,7 @@ describe("<Button />", () => {
   test("applies danger styling correctly", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Danger Button" onPress={onPressMock} type="danger" />
+      <Button title="Danger Button" onPress={onPressMock} type="danger" />,
     );
 
     const button = getByText("Danger Button");
@@ -59,7 +63,7 @@ describe("<Button />", () => {
   test("is disabled when disabled prop is true", () => {
     const onPressMock = jest.fn();
     const { getByText } = render(
-      <Button title="Disabled Button" onPress={onPressMock} disabled={true} />
+      <Button title="Disabled Button" onPress={onPressMock} disabled={true} />,
     );
 
     const button = getByText("Disabled Button");
@@ -71,7 +75,7 @@ describe("<Button />", () => {
 
   test("matches snapshot", () => {
     const tree = render(
-      <Button title="Snapshot Test" onPress={() => {}} />
+      <Button title="Snapshot Test" onPress={() => {}} />,
     ).toJSON();
     expect(tree).toMatchSnapshot();
   });

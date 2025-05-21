@@ -19,7 +19,7 @@ export const EmailForm = ({
   onEmailMessageChange,
 }: EmailFormProps) => {
   const { t } = useTranslation();
-
+  const maxLength = 1200;
   return (
     <View>
       <Text className="mb-2 text-base font-medium text-corp-grey">
@@ -33,6 +33,7 @@ export const EmailForm = ({
         placeholderTextColor="#767683"
         keyboardType="email-address"
         autoCapitalize="none"
+        maxLength={500}
       />
 
       <Text className="mb-2 text-base font-medium text-corp-grey">
@@ -44,6 +45,7 @@ export const EmailForm = ({
         onChangeText={onEmailSubjectChange}
         placeholder={t("enterEmailSubject")}
         placeholderTextColor="#767683"
+        maxLength={500}
       />
 
       <Text className="mb-2 text-base font-medium text-corp-grey">
@@ -58,7 +60,11 @@ export const EmailForm = ({
         multiline
         numberOfLines={4}
         textAlignVertical="top"
+        maxLength={maxLength}
       />
+      <Text className="mt-1 text-xs text-corp-mid-grey text-right">
+        {maxLength - emailMessage.length} / {maxLength}{" "}
+      </Text>
     </View>
   );
 };

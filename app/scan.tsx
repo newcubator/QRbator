@@ -50,7 +50,7 @@ export default function ScanScreen() {
         <Text className="mb-4 text-center text-lg text-corp-grey">
           {t("noCameraPermission")}
         </Text>
-        <Button title={t("goBack")} onPress={() => router.dismiss()} />
+        <Button title={t("goBack")} onPress={() => router.replace("/home")} />
       </SafeAreaView>
     );
   }
@@ -95,7 +95,7 @@ export default function ScanScreen() {
           )}
           <Button
             title={t("cancel")}
-            onPress={() => router.dismiss()}
+            onPress={() => router.replace("/home")}
             type="secondary"
           />
         </View>

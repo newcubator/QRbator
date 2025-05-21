@@ -17,7 +17,8 @@
       },
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "8AF5S7C42H"
     },
     "android": {
       "versionCode": 3,
