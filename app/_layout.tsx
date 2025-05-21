@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Platform } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { DB_NAME } from "@/core/qrCodeStorage";
@@ -36,7 +36,7 @@ export default function Layout() {
             options={{
               title: t("scanQRCode"),
               headerShown: true,
-              presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+              presentation: "formSheet",
             }}
           />
           <Stack.Screen
@@ -52,7 +52,7 @@ export default function Layout() {
             options={{
               title: t("addEditQR"),
               headerShown: true,
-              presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+              presentation: "formSheet",
               contentStyle: {
                 backgroundColor: "#FFFFFF",
                 height: "100%",

@@ -28,7 +28,7 @@ export default function ScanScreen() {
   }) => {
     setScanned(true);
 
-    router.push({
+    router.navigate({
       pathname: "/add-edit",
       params: { content: data, type, origin: "scan" },
     });
@@ -57,12 +57,6 @@ export default function ScanScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-corp-white">
-      <Stack.Screen
-        options={{
-          title: t("scanQRCode"),
-          presentation: "modal",
-        }}
-      />
       <View className="flex-1">
         <CameraView
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}

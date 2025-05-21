@@ -2,7 +2,7 @@
   "expo": {
     "name": "QRbator",
     "slug": "qrbator",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "QRbator",
@@ -59,7 +59,9 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera and scan QR codes"
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

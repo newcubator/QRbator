@@ -104,11 +104,6 @@ exports[`<SettingsScreen /> matches snapshot 1`] = `
     className="mb-8"
     entering={{}}
   >
-    <Text
-      className="mb-4 text-lg font-medium text-corp-grey"
-    >
-      importData
-    </Text>
     <View
       accessibilityState={
         {
@@ -160,11 +155,6 @@ exports[`<SettingsScreen /> matches snapshot 1`] = `
     className="mb-8"
     entering={{}}
   >
-    <Text
-      className="mb-4 text-lg font-medium text-corp-grey"
-    >
-      onboarding
-    </Text>
     <View
       accessibilityState={
         {
@@ -201,9 +191,9 @@ exports[`<SettingsScreen /> matches snapshot 1`] = `
     >
       Icon
       <Text
-        className="mt-2 text-center font-medium text-corp-teal"
+        className="mt-2 text-center font-medium text-corp-teal-dark"
       >
-        viewOnboarding
+        settings.viewOnboarding
       </Text>
     </View>
   </View>

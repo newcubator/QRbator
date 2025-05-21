@@ -214,7 +214,7 @@ export default function QRCodeDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white">
+    <SafeAreaView className="flex-1 bg-corp-white pb-4">
       <Stack.Screen
         options={{
           title: qrCode ? qrCode.name : t("qrDetails"),
@@ -346,7 +346,7 @@ export default function QRCodeDetailScreen() {
           <View className="flex-row flex-wrap justify-between">
             <TouchableOpacity
               onPress={handleCopyContent}
-              className="mb-4 w-[48%] flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
+              className="mb-4 w-[48%] flex-row items-start justify-center rounded-lg bg-corp-grey p-4"
             >
               <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
               <Text className="ml-2 text-center font-medium text-white">

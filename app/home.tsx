@@ -34,7 +34,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const init = async () => {
-      try { 
+      try {
         await initDB();
         setIsInitialized(true);
       } catch (error) {}
