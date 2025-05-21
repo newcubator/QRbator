@@ -37,6 +37,9 @@ export default function QRCodeDetailScreen() {
       setLoading(true);
       try {
         const data = await getQRCodeById(params.id);
+        if (data?.content && data?.content.length >= 5000) {
+          return deleteQRCode(params.id);
+        }
         setQrCode(data);
       } catch (error) {
         console.error("Error fetching QR code:", error);
@@ -55,7 +58,7 @@ export default function QRCodeDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchQRCode();
-    }, [fetchQRCode])
+    }, [fetchQRCode]),
   );
 
   const isValidUrl = useCallback(
@@ -75,7 +78,7 @@ export default function QRCodeDetailScreen() {
         return false;
       }
     },
-    []
+    [],
   );
 
   const [canOpenUrl, setCanOpenUrl] = useState(false);
@@ -211,7 +214,7 @@ export default function QRCodeDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white">
+    <SafeAreaView className="flex-1 bg-corp-white pb-4">
       <Stack.Screen
         options={{
           title: qrCode ? qrCode.name : t("qrDetails"),
@@ -263,10 +266,10 @@ export default function QRCodeDetailScreen() {
                 qrCode.type === "url"
                   ? "link"
                   : qrCode.type === "vcard"
-                  ? "person"
-                  : qrCode.type === "email"
-                  ? "mail"
-                  : "text"
+                    ? "person"
+                    : qrCode.type === "email"
+                      ? "mail"
+                      : "text"
               }
               size={20}
               color="#50505E"
@@ -343,7 +346,7 @@ export default function QRCodeDetailScreen() {
           <View className="flex-row flex-wrap justify-between">
             <TouchableOpacity
               onPress={handleCopyContent}
-              className="mb-4 w-[48%] flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
+              className="mb-4 w-[48%] flex-row items-start justify-center rounded-lg bg-corp-grey p-4"
             >
               <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
               <Text className="ml-2 text-center font-medium text-white">

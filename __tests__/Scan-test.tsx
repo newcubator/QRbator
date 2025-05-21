@@ -18,7 +18,7 @@ describe("<ScanScreen />", () => {
     require("expo-camera").Camera.requestCameraPermissionsAsync.mockResolvedValue(
       {
         status: "denied",
-      }
+      },
     );
 
     const renderResult = render(<ScanScreen />);
@@ -34,7 +34,7 @@ describe("<ScanScreen />", () => {
     require("expo-camera").Camera.requestCameraPermissionsAsync.mockResolvedValue(
       {
         status: "granted",
-      }
+      },
     );
 
     const renderResult = render(<ScanScreen />);
@@ -50,7 +50,7 @@ describe("<ScanScreen />", () => {
     require("expo-camera").Camera.requestCameraPermissionsAsync.mockResolvedValue(
       {
         status: "denied",
-      }
+      },
     );
 
     const component = render(<ScanScreen />);

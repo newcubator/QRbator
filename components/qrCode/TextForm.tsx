@@ -13,6 +13,7 @@ export const TextForm = ({
   isReadOnly = false,
 }: TextFormProps) => {
   const { t } = useTranslation();
+  const maxLength = 1200;
 
   return (
     <View className="mb-4">
@@ -20,17 +21,23 @@ export const TextForm = ({
         {t("qrContent")}
       </Text>
       {!isReadOnly ? (
-        <TextInput
-          className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
-          value={content}
-          onChangeText={onContentChange}
-          placeholder={t("enterQrContentPlaceholder")}
-          placeholderTextColor="#767683"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          autoCapitalize="none"
-        />
+        <>
+          <TextInput
+            className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
+            value={content}
+            onChangeText={onContentChange}
+            placeholder={t("enterQrContentPlaceholder")}
+            placeholderTextColor="#767683"
+            multiline
+            numberOfLines={4}
+            maxLength={maxLength}
+            textAlignVertical="top"
+            autoCapitalize="none"
+          />
+          <Text className="mt-1 text-xs text-corp-mid-grey text-right">
+            {maxLength - content.length} / {maxLength}{" "}
+          </Text>
+        </>
       ) : (
         <View className="rounded-lg border border-corp-mid-grey bg-white p-4">
           <Text className="text-corp-grey">{content}</Text>

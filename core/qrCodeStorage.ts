@@ -38,13 +38,13 @@ export const initDB = async (): Promise<void> => {
     if (!hasTypeColumn && tableInfo.length > 0) {
       try {
         await db.execAsync(
-          "ALTER TABLE qrcodes ADD COLUMN type TEXT DEFAULT 'text';"
+          "ALTER TABLE qrcodes ADD COLUMN type TEXT DEFAULT 'text';",
         );
         console.log("Added 'type' column to qrcodes table");
 
         // Update existing records based on content
         const allRecords = await db.getAllAsync<any>(
-          "SELECT id, content FROM qrcodes WHERE type IS NULL OR type = '';"
+          "SELECT id, content FROM qrcodes WHERE type IS NULL OR type = '';",
         );
 
         for (const record of allRecords) {
@@ -108,7 +108,7 @@ const mapRowToQRCodeEntry = (row: any): QRCodeEntry => {
 export const getAllQRCodes = async (): Promise<QRCodeEntry[]> => {
   const db = await getDatabase();
   const allRows = await db.getAllAsync<any>(
-    "SELECT * FROM qrcodes ORDER BY createdAt DESC;"
+    "SELECT * FROM qrcodes ORDER BY createdAt DESC;",
   );
   return allRows.map(mapRowToQRCodeEntry);
 };
@@ -117,7 +117,7 @@ export const getQRCodesByTag = async (tag: string): Promise<QRCodeEntry[]> => {
   const db = await getDatabase();
   const rows = await db.getAllAsync<any>(
     "SELECT * FROM qrcodes WHERE tags LIKE ? ORDER BY createdAt DESC;",
-    [`%"${tag}"%`]
+    [`%"${tag}"%`],
   );
   return rows
     .map(mapRowToQRCodeEntry)
@@ -125,7 +125,7 @@ export const getQRCodesByTag = async (tag: string): Promise<QRCodeEntry[]> => {
 };
 
 export const addQRCode = async (
-  qrCode: Omit<QRCodeEntry, "id">
+  qrCode: Omit<QRCodeEntry, "id">,
 ): Promise<string> => {
   const db = await getDatabase();
   const id = Date.now().toString();
@@ -141,18 +141,18 @@ export const addQRCode = async (
       qrCode.createdAt,
       qrCode.description || null,
       qrCode.type || "text", // Default to 'text' if type is missing
-    ]
+    ],
   );
   return id;
 };
 
 export const getQRCodeById = async (
-  id: string
+  id: string,
 ): Promise<QRCodeEntry | null> => {
   const db = await getDatabase();
   const row = await db.getFirstAsync<any>(
     "SELECT * FROM qrcodes WHERE id = ?;",
-    [id]
+    [id],
   );
   return row ? mapRowToQRCodeEntry(row) : null;
 };
@@ -170,7 +170,7 @@ export const updateQRCode = async (qrCode: QRCodeEntry): Promise<void> => {
       qrCode.createdAt,
       qrCode.type || "text", // Default to 'text' if type is missing
       qrCode.id,
-    ]
+    ],
   );
 
   if (result.changes === 0) {
@@ -209,7 +209,7 @@ export const importQRCodes = async (qrCodes: QRCodeEntry[]): Promise<void> => {
           qrCode.createdAt,
           qrCode.description || null,
           qrCode.type || "text", // Default to 'text' if type is missing
-        ]
+        ],
       );
     }
   });

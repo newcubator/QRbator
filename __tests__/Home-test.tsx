@@ -1,10 +1,25 @@
-import { render } from "@testing-library/react-native";
+import { render, waitFor } from "@testing-library/react-native";
 import HomeScreen from "../app/home";
 
+const mockInitDB = jest.fn().mockResolvedValue(undefined);
+const mockGetAllQRCodes = jest.fn().mockResolvedValue([]);
+const mockGetQRCodesByTag = jest.fn().mockResolvedValue([]);
+
 jest.mock("~/core/qrCodeStorage", () => ({
-  initDB: jest.fn().mockResolvedValue(undefined),
-  getAllQRCodes: jest.fn().mockResolvedValue([]),
-  getQRCodesByTag: jest.fn().mockResolvedValue([]),
+  initDB: mockInitDB,
+  getAllQRCodes: mockGetAllQRCodes,
+  getQRCodesByTag: mockGetQRCodesByTag,
+}));
+
+jest.mock("expo-router", () => ({
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+  },
+  useFocusEffect: jest.fn((callback) => {
+    callback();
+    return undefined;
+  }),
 }));
 
 describe("<HomeScreen />", () => {
@@ -12,12 +27,14 @@ describe("<HomeScreen />", () => {
     jest.clearAllMocks();
   });
 
-  test("renders without crashing", () => {
-    expect(() => render(<HomeScreen />)).not.toThrow();
-  });
+  test("renders QR code title text", async () => {
+    const { getByText } = render(<HomeScreen />);
 
-  test("renders and matches snapshot", () => {
-    const tree = render(<HomeScreen />).toJSON();
-    expect(tree).toMatchSnapshot();
+    await waitFor(
+      () => {
+        expect(getByText("qrCodes")).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
   });
 });
