@@ -1,3 +1,4 @@
+import { MAX_LENGTH_INPUT_LENGTH, PLACEHOLDER_TEXT_COLOR } from "@/constants/config";
 import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
@@ -13,7 +14,6 @@ export const TextForm = ({
   isReadOnly = false,
 }: TextFormProps) => {
   const { t } = useTranslation();
-  const maxLength = 1200;
 
   return (
     <View className="mb-4">
@@ -27,15 +27,15 @@ export const TextForm = ({
             value={content}
             onChangeText={onContentChange}
             placeholder={t("enterQrContentPlaceholder")}
-            placeholderTextColor="#767683"
+            placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
             multiline
             numberOfLines={4}
-            maxLength={maxLength}
+            maxLength={MAX_LENGTH_INPUT_LENGTH}
             textAlignVertical="top"
             autoCapitalize="none"
           />
           <Text className="mt-1 text-xs text-corp-mid-grey text-right">
-            {maxLength - content.length} / {maxLength}{" "}
+            {MAX_LENGTH_INPUT_LENGTH - content.length} / {MAX_LENGTH_INPUT_LENGTH}{" "}
           </Text>
         </>
       ) : (

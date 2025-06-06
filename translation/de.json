@@ -26,6 +26,7 @@
   "contentLabel": "Inhalt",
   "contentPlaceholder": "QR-Code-Daten (URL, Text usw.)",
   "contentRequired": "Inhalt darf nicht leer sein.",
+  "contentTooLarge": "QR-Code-Inhalt ist zu lang ({{maxLength}} Zeichen) und wurde aufgrund technischer Limitierungen des QR-Codes gelöscht.",
   "copiedToClipboard": "In die Zwischenablage kopiert!",
   "copyContent": "Inhalt kopieren",
   "copyContentButton": "Inhalt kopieren",
