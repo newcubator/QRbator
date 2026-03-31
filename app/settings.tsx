@@ -1,20 +1,65 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
-import { useRouter } from "expo-router";
+import { File, Paths } from "expo-file-system";
+import { Stack, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import Papa from "papaparse";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
-import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
-import { Button } from "~/components/Button";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+
 import { QRCodeEntry } from "~/core/qrCode";
 import {
   deleteAllQRCodes,
   getAllQRCodes,
   importQRCodes,
 } from "~/core/qrCodeStorage";
+import { parseQRCodesFromCsv, serializeQRCodesToCsv } from "~/core/qrCodeUtils";
+
+function SettingsRow({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  destructive = false,
+}: {
+  icon: keyof (typeof Ionicons)["glyphMap"];
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  destructive?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center px-4 py-4"
+      style={({ pressed }) => (pressed ? { opacity: 0.78 } : null)}
+    >
+      <View
+        className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${
+          destructive ? "bg-corp-red" : "bg-corp-light-grey"
+        }`}
+      >
+        <Ionicons
+          name={icon}
+          size={18}
+          color={destructive ? "#FFFFFF" : "#50505E"}
+        />
+      </View>
+      <View className="flex-1">
+        <Text
+          className={`font-semibold ${
+            destructive ? "text-corp-dark-red" : "text-corp-grey"
+          }`}
+        >
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text className="mt-1 text-sm text-corp-grey">{subtitle}</Text>
+        ) : null}
+      </View>
+      <Ionicons name="chevron-forward" size={18} color="#979797" />
+    </Pressable>
+  );
+}
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -29,35 +74,20 @@ export default function SettingsScreen() {
         return;
       }
 
-      let content = "";
       const fileName = `qr_codes_export_${
         new Date().toISOString().split("T")[0]
       }.${format}`;
-      const dir = FileSystem.cacheDirectory;
-      if (!dir) {
-        Alert.alert(t("error"), "Could not access cache directory.");
-        return;
-      }
+      const content =
+        format === "json"
+          ? JSON.stringify(codes, null, 2)
+          : serializeQRCodesToCsv(codes);
 
-      if (format === "json") {
-        content = JSON.stringify(codes, null, 2);
-      } else {
-        // CSV format
-        const headers = "id,name,content,description,createdAt,tags\n";
-        const rows = codes.map((code) => {
-          const tags = code.tags.join(";");
-          return `"${code.id}","${code.name}","${code.content}","${
-            code.description || ""
-          }","${code.createdAt}","${tags}"`;
-        });
-        content = headers + rows.join("\n");
-      }
-
-      const fileUri = `${dir}${fileName}`;
-      await FileSystem.writeAsStringAsync(fileUri, content);
+      const file = new File(Paths.cache, fileName);
+      file.create({ overwrite: true });
+      file.write(content);
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(file.uri);
       } else {
         Alert.alert(t("error"), t("sharingNotAvailable"));
       }
@@ -80,30 +110,21 @@ export default function SettingsScreen() {
 
       const fileUri = result.assets[0].uri;
       const fileName = result.assets[0].name;
-      const fileContent = await FileSystem.readAsStringAsync(fileUri);
+      const fileContent = await new File(fileUri).text();
 
       let qrCodes: QRCodeEntry[] = [];
 
       if (fileName.endsWith(".json")) {
         try {
           qrCodes = JSON.parse(fileContent);
-        } catch (e) {
+        } catch {
           Alert.alert(t("error"), t("importFailed"));
           return;
         }
       } else if (fileName.endsWith(".csv")) {
         try {
-          const results = Papa.parse(fileContent, { header: true });
-          qrCodes = results.data.map((row: any) => ({
-            id: row.id || Date.now().toString(),
-            name: row.name,
-            content: row.content,
-            type: row.type || "text",
-            description: row.description,
-            createdAt: row.createdAt || new Date().toISOString(),
-            tags: row.tags ? row.tags.split(";") : [],
-          }));
-        } catch (e) {
+          qrCodes = parseQRCodesFromCsv(fileContent);
+        } catch {
           Alert.alert(t("error"), t("importFailed"));
           return;
         }
@@ -170,102 +191,81 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const handleOpenOnboarding = () => {
-    router.push("/onboarding");
-  };
-
   return (
-    <View className="flex-1 bg-corp-white px-6 py-4">
-      <Animated.View
-        entering={FadeInDown.duration(400)
-          .delay(400)
-          .reduceMotion(ReduceMotion.Never)}
-        className="mb-8"
+    <>
+      <ScrollView
+        className="flex-1 bg-corp-white"
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 16,
+          paddingBottom: 40,
+        }}
       >
-        <Text className="mb-4 text-lg font-medium text-corp-grey">
-          {t("exportData")}
-        </Text>
-        <View className="flex-row justify-between">
-          <TouchableOpacity
-            onPress={() => handleExportAll("json")}
-            className="mb-4 w-[48%] items-center rounded-lg bg-corp-dark-teal p-6"
-          >
-            <Ionicons name="document-text-outline" size={32} color="#FFFFFF" />
-            <Text className="mt-2 text-center font-medium text-white">
-              {t("exportAllJson")}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => handleExportAll("csv")}
-            className="mb-4 w-[48%] items-center rounded-lg bg-corp-grey p-6"
-          >
-            <Ionicons name="grid-outline" size={32} color="#FFFFFF" />
-            <Text className="mt-2 text-center font-medium text-white">
-              {t("exportAllCsv")}
-            </Text>
-          </TouchableOpacity>
+        <View className="mb-8">
+          <Text className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey">
+            {t("exportData")}
+          </Text>
+          <View className="overflow-hidden rounded-3xl border border-corp-mid-grey bg-corp-white">
+            <SettingsRow
+              icon="document-text-outline"
+              title={t("exportAllJson")}
+              subtitle="JavaScript Object Notation"
+              onPress={() => handleExportAll("json")}
+            />
+            <View className="border-b border-corp-light-grey" />
+            <SettingsRow
+              icon="grid-outline"
+              title={t("exportAllCsv")}
+              subtitle="Comma-separated values"
+              onPress={() => handleExportAll("csv")}
+            />
+          </View>
         </View>
-      </Animated.View>
 
-      <Animated.View
-        entering={FadeInDown.duration(400)
-          .delay(500)
-          .reduceMotion(ReduceMotion.Never)}
-        className="mb-8"
-      >
-        <TouchableOpacity
-          onPress={handleImportFile}
-          className="mb-4 w-full items-center rounded-lg bg-corp-purple/10 p-6"
-        >
-          <Ionicons name="cloud-upload-outline" size={32} color="#876CDA" />
-          <Text className="mt-2 text-center font-medium text-corp-purple">
-            {t("importFromFile")}
+        <View className="mb-8">
+          <Text className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey">
+            {t("appSettings")}
           </Text>
-          <Text className="mt-1 text-center text-xs text-corp-purple/80">
-            {t("supportedFormats")}
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
+          <View className="overflow-hidden rounded-3xl border border-corp-mid-grey bg-corp-white">
+            <SettingsRow
+              icon="cloud-upload-outline"
+              title={t("importFromFile")}
+              subtitle={t("supportedFormats")}
+              onPress={handleImportFile}
+            />
+            <View className="border-b border-corp-light-grey" />
+            <SettingsRow
+              icon="information-circle-outline"
+              title={t("settings.viewOnboarding")}
+              subtitle={t("about")}
+              onPress={() => router.push("/onboarding")}
+            />
+          </View>
+        </View>
 
-      <Animated.View
-        entering={FadeInDown.duration(400)
-          .delay(600)
-          .reduceMotion(ReduceMotion.Never)}
-        className="mb-8"
-      >
-        <TouchableOpacity
-          onPress={handleOpenOnboarding}
-          className="mb-4 w-full items-center rounded-lg bg-corp-teal/20 p-6 border border-corp-teal"
-        >
-          <Ionicons
-            name="information-circle-outline"
-            size={32}
-            color="#2A8A85"
-          />
-          <Text className="mt-2 text-center font-medium text-corp-teal-dark">
-            {t("settings.viewOnboarding")}
+        <View>
+          <Text className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey">
+            {t("dangerZone")}
           </Text>
-        </TouchableOpacity>
-      </Animated.View>
-
-      <Animated.View
-        entering={FadeInDown.duration(400)
-          .delay(700)
-          .reduceMotion(ReduceMotion.Never)}
-        className="mb-8"
-      >
-        <Text className="mb-4 text-lg font-medium text-corp-grey">
-          {t("dangerZone")}
-        </Text>
-        <Button
-          title={t("deleteAllQRCodes")}
-          onPress={handleDeleteAll}
-          type="danger"
-          icon="trash-outline"
-          className="w-full"
-        />
-      </Animated.View>
-    </View>
+          <View className="overflow-hidden rounded-3xl border border-corp-red bg-corp-white">
+            <SettingsRow
+              icon="trash-outline"
+              title={t("deleteAllQRCodes")}
+              subtitle={t("deleteAllConfirmMessage")}
+              onPress={handleDeleteAll}
+              destructive
+            />
+          </View>
+        </View>
+      </ScrollView>
+      <Stack.Screen
+        options={{
+          title: t("tab-settings"),
+          headerLargeTitle: true,
+          headerShadowVisible: false,
+        }}
+      />
+    </>
   );
 }

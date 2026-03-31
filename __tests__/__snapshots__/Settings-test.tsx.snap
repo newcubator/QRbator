@@ -1,257 +1,331 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<SettingsScreen /> matches snapshot 1`] = `
-<View
-  className="flex-1 bg-corp-white px-6 py-4"
+<RCTScrollView
+  className="flex-1 bg-corp-white"
+  contentContainerStyle={
+    {
+      "paddingBottom": 40,
+      "paddingHorizontal": 24,
+      "paddingTop": 16,
+    }
+  }
+  contentInsetAdjustmentBehavior="automatic"
 >
-  <View
-    className="mb-8"
-    entering={{}}
-  >
-    <Text
-      className="mb-4 text-lg font-medium text-corp-grey"
-    >
-      exportData
-    </Text>
+  <View>
     <View
-      className="flex-row justify-between"
+      className="mb-8"
     >
+      <Text
+        className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey"
+      >
+        exportData
+      </Text>
       <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          {
-            "opacity": 1,
-          }
-        }
+        className="overflow-hidden rounded-3xl border border-corp-mid-grey bg-corp-white"
       >
-        Icon
-        <Text
-          className="mt-2 text-center font-medium text-white"
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          className="flex-row items-center px-4 py-4"
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={null}
         >
-          exportAllJson
-        </Text>
+          <View
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-light-grey"
+          >
+            Icon
+          </View>
+          <View
+            className="flex-1"
+          >
+            <Text
+              className="font-semibold text-corp-grey"
+            >
+              exportAllJson
+            </Text>
+            <Text
+              className="mt-1 text-sm text-corp-grey"
+            >
+              JavaScript Object Notation
+            </Text>
+          </View>
+          Icon
+        </View>
+        <View
+          className="border-b border-corp-light-grey"
+        />
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          className="flex-row items-center px-4 py-4"
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={null}
+        >
+          <View
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-light-grey"
+          >
+            Icon
+          </View>
+          <View
+            className="flex-1"
+          >
+            <Text
+              className="font-semibold text-corp-grey"
+            >
+              exportAllCsv
+            </Text>
+            <Text
+              className="mt-1 text-sm text-corp-grey"
+            >
+              Comma-separated values
+            </Text>
+          </View>
+          Icon
+        </View>
       </View>
+    </View>
+    <View
+      className="mb-8"
+    >
+      <Text
+        className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey"
+      >
+        appSettings
+      </Text>
       <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          {
-            "opacity": 1,
-          }
-        }
+        className="overflow-hidden rounded-3xl border border-corp-mid-grey bg-corp-white"
       >
-        Icon
-        <Text
-          className="mt-2 text-center font-medium text-white"
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          className="flex-row items-center px-4 py-4"
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={null}
         >
-          exportAllCsv
-        </Text>
+          <View
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-light-grey"
+          >
+            Icon
+          </View>
+          <View
+            className="flex-1"
+          >
+            <Text
+              className="font-semibold text-corp-grey"
+            >
+              importFromFile
+            </Text>
+            <Text
+              className="mt-1 text-sm text-corp-grey"
+            >
+              supportedFormats
+            </Text>
+          </View>
+          Icon
+        </View>
+        <View
+          className="border-b border-corp-light-grey"
+        />
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          className="flex-row items-center px-4 py-4"
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={null}
+        >
+          <View
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-light-grey"
+          >
+            Icon
+          </View>
+          <View
+            className="flex-1"
+          >
+            <Text
+              className="font-semibold text-corp-grey"
+            >
+              settings.viewOnboarding
+            </Text>
+            <Text
+              className="mt-1 text-sm text-corp-grey"
+            >
+              about
+            </Text>
+          </View>
+          Icon
+        </View>
+      </View>
+    </View>
+    <View>
+      <Text
+        className="mb-3 text-sm font-medium uppercase tracking-wide text-corp-grey"
+      >
+        dangerZone
+      </Text>
+      <View
+        className="overflow-hidden rounded-3xl border border-corp-red bg-corp-white"
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          className="flex-row items-center px-4 py-4"
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={null}
+        >
+          <View
+            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-red"
+          >
+            Icon
+          </View>
+          <View
+            className="flex-1"
+          >
+            <Text
+              className="font-semibold text-corp-dark-red"
+            >
+              deleteAllQRCodes
+            </Text>
+            <Text
+              className="mt-1 text-sm text-corp-grey"
+            >
+              deleteAllConfirmMessage
+            </Text>
+          </View>
+          Icon
+        </View>
       </View>
     </View>
   </View>
-  <View
-    className="mb-8"
-    entering={{}}
-  >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
-    >
-      Icon
-      <Text
-        className="mt-2 text-center font-medium text-corp-purple"
-      >
-        importFromFile
-      </Text>
-      <Text
-        className="mt-1 text-center text-xs text-corp-purple/80"
-      >
-        supportedFormats
-      </Text>
-    </View>
-  </View>
-  <View
-    className="mb-8"
-    entering={{}}
-  >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
-    >
-      Icon
-      <Text
-        className="mt-2 text-center font-medium text-corp-teal-dark"
-      >
-        settings.viewOnboarding
-      </Text>
-    </View>
-  </View>
-  <View
-    className="mb-8"
-    entering={{}}
-  >
-    <Text
-      className="mb-4 text-lg font-medium text-corp-grey"
-    >
-      dangerZone
-    </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        {
-          "opacity": 1,
-        }
-      }
-    >
-      Icon
-      <Text
-        className="ml-2 font-semibold text-corp-white"
-        style={
-          [
-            undefined,
-          ]
-        }
-      >
-        deleteAllQRCodes
-      </Text>
-    </View>
-  </View>
-</View>
+</RCTScrollView>
 `;

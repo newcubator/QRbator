@@ -16,7 +16,6 @@ module.exports = function (api) {
         },
       ],
       "inline-import",
-      "react-native-reanimated/plugin",
     ],
   };
 };

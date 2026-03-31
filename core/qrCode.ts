@@ -1,8 +1,10 @@
+export type QRCodeType = "url" | "vcard" | "text" | "email" | "wifi";
+
 export interface QRCodeEntry {
   id: string;
   name: string;
   content: string;
-  type: "url" | "vcard" | "text" | "email" | "wifi";
+  type: QRCodeType;
   tags: string[];
   createdAt: string;
   description?: string;

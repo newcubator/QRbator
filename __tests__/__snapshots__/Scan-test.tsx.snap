@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
-<RCTSafeAreaView
-  className="flex-1 items-center justify-center bg-corp-white px-6"
->
+[
   <Text
     className="mb-4 text-center text-lg text-corp-grey"
   >
     noCameraPermission
-  </Text>
+  </Text>,
   <View
     accessibilityState={
       {
@@ -28,9 +26,12 @@ exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
       }
     }
     accessible={true}
+    className="flex-row items-center justify-center rounded-lg px-4 py-3 bg-corp-dark-teal  opacity-100 "
     collapsable={false}
     focusable={true}
+    onBlur={[Function]}
     onClick={[Function]}
+    onFocus={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}
     onResponderRelease={[Function]}
@@ -38,13 +39,14 @@ exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
     style={
-      {
-        "opacity": 1,
-      }
+      [
+        undefined,
+        null,
+      ]
     }
   >
     <Text
-      className="ml-2 font-semibold text-corp-white"
+      className=" font-semibold text-corp-white"
       style={
         [
           undefined,
@@ -53,6 +55,6 @@ exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
     >
       goBack
     </Text>
-  </View>
-</RCTSafeAreaView>
+  </View>,
+]
 `;

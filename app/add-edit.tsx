@@ -6,18 +6,21 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "~/components/Button";
-import { FormProvider, TagInput, TypeSelector } from "~/components/qrCode";
+import { FormProvider } from "~/components/qrCode/FormProvider";
+import { TagInput } from "~/components/qrCode/TagInput";
+import { TypeSelector } from "~/components/qrCode/TypeSelector";
 import { QRCodeEntry } from "~/core/qrCode";
 import { addQRCode, getQRCodeById, updateQRCode } from "~/core/qrCodeStorage";
+import { resolveQRCodeType } from "~/core/qrCodeUtils";
+import { checkAndRequestStoreReview } from "~/core/storeReview";
 
 export default function AddEditQRCodeScreen() {
   const { t } = useTranslation();
@@ -28,8 +31,6 @@ export default function AddEditQRCodeScreen() {
     origin?: string;
   }>();
 
-  const { top } = useSafeAreaInsets();
-
   const [name, setName] = useState("");
   const [content, setContent] = useState(params.content || "");
   const [description, setDescription] = useState("");
@@ -37,9 +38,9 @@ export default function AddEditQRCodeScreen() {
   const [newTag, setNewTag] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [qrCodeType, setQRCodeType] = useState<
-    "url" | "vcard" | "text" | "email" | "wifi"
-  >((params.type as "url" | "vcard" | "text" | "email" | "wifi") || "text");
+  const [qrCodeType, setQRCodeType] = useState(() =>
+    resolveQRCodeType(params.type, params.content),
+  );
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -81,7 +82,7 @@ export default function AddEditQRCodeScreen() {
             setTags(qrCode.tags);
 
             if (qrCode.type) {
-              setQRCodeType(qrCode.type);
+              setQRCodeType(resolveQRCodeType(qrCode.type, qrCode.content));
 
               if (qrCode.type === "url") {
                 setUrl(qrCode.content);
@@ -223,6 +224,7 @@ export default function AddEditQRCodeScreen() {
         await updateQRCode(qrCode);
       } else {
         await addQRCode(qrCode);
+        await checkAndRequestStoreReview();
       }
 
       router.replace("/home");
@@ -252,7 +254,7 @@ export default function AddEditQRCodeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white" style={{ paddingTop: top }}>
+    <SafeAreaView className="flex-1 bg-corp-white" edges={["left", "right", "bottom"]}>
       <Stack.Screen
         options={{
           title: isEditing ? t("editQRCode") : t("addQRCode"),
@@ -266,115 +268,122 @@ export default function AddEditQRCodeScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
             className="flex-1 px-6 py-4"
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 12 }}
             showsVerticalScrollIndicator={true}
           >
             {!isEditing && (
-              <TypeSelector
-                selectedType={qrCodeType}
-                onTypeSelect={setQRCodeType}
-              />
+              <View className="mb-6 rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
+                <TypeSelector
+                  selectedType={qrCodeType}
+                  onTypeSelect={setQRCodeType}
+                />
+              </View>
             )}
 
-            <FormProvider
-              type={qrCodeType}
-              content={content}
-              isReadOnly={isEditing || !!params.content}
-              onContentChange={setContent}
-              url={url}
-              onUrlChange={setUrl}
-              emailAddress={emailAddress}
-              emailSubject={emailSubject}
-              emailMessage={emailMessage}
-              onEmailAddressChange={setEmailAddress}
-              onEmailSubjectChange={setEmailSubject}
-              onEmailMessageChange={setEmailMessage}
-              firstName={firstName}
-              lastName={lastName}
-              mobile={mobile}
-              phone={phone}
-              fax={fax}
-              email={email}
-              company={company}
-              jobTitle={jobTitle}
-              street={street}
-              city={city}
-              zip={zip}
-              state={state}
-              country={country}
-              website={website}
-              onFirstNameChange={setFirstName}
-              onLastNameChange={setLastName}
-              onMobileChange={setMobile}
-              onPhoneChange={setPhone}
-              onFaxChange={setFax}
-              onEmailChange={setEmail}
-              onCompanyChange={setCompany}
-              onJobTitleChange={setJobTitle}
-              onStreetChange={setStreet}
-              onCityChange={setCity}
-              onZipChange={setZip}
-              onStateChange={setState}
-              onCountryChange={setCountry}
-              onWebsiteChange={setWebsite}
-              ssid={ssid}
-              password={password}
-              isHidden={isHidden}
-              encryption={encryption}
-              onSsidChange={setSsid}
-              onPasswordChange={setPassword}
-              onIsHiddenChange={setIsHidden}
-              onEncryptionChange={setEncryption}
-            />
-
-            <View className="mb-4">
-              <Text className="mb-2 text-base font-medium text-corp-grey">
-                {t("name")}
-              </Text>
-              <TextInput
-                className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
-                value={name}
-                onChangeText={setName}
-                placeholder={t("enterName")}
-                placeholderTextColor="#767683"
+            <View className="mb-6 rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
+              <FormProvider
+                type={qrCodeType}
+                content={content}
+                isReadOnly={isEditing || !!params.content}
+                onContentChange={setContent}
+                url={url}
+                onUrlChange={setUrl}
+                emailAddress={emailAddress}
+                emailSubject={emailSubject}
+                emailMessage={emailMessage}
+                onEmailAddressChange={setEmailAddress}
+                onEmailSubjectChange={setEmailSubject}
+                onEmailMessageChange={setEmailMessage}
+                firstName={firstName}
+                lastName={lastName}
+                mobile={mobile}
+                phone={phone}
+                fax={fax}
+                email={email}
+                company={company}
+                jobTitle={jobTitle}
+                street={street}
+                city={city}
+                zip={zip}
+                state={state}
+                country={country}
+                website={website}
+                onFirstNameChange={setFirstName}
+                onLastNameChange={setLastName}
+                onMobileChange={setMobile}
+                onPhoneChange={setPhone}
+                onFaxChange={setFax}
+                onEmailChange={setEmail}
+                onCompanyChange={setCompany}
+                onJobTitleChange={setJobTitle}
+                onStreetChange={setStreet}
+                onCityChange={setCity}
+                onZipChange={setZip}
+                onStateChange={setState}
+                onCountryChange={setCountry}
+                onWebsiteChange={setWebsite}
+                ssid={ssid}
+                password={password}
+                isHidden={isHidden}
+                encryption={encryption}
+                onSsidChange={setSsid}
+                onPasswordChange={setPassword}
+                onIsHiddenChange={setIsHidden}
+                onEncryptionChange={setEncryption}
               />
             </View>
 
-            <TagInput
-              tags={tags}
-              newTag={newTag}
-              onNewTagChange={setNewTag}
-              onAddTag={addTag}
-              onRemoveTag={removeTag}
-            />
+            <View className="mb-6 rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
+              <View className="mb-4">
+                <Text className="mb-2 text-base font-medium text-corp-grey">
+                  {t("name")}
+                </Text>
+                <TextInput
+                  className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
+                  value={name}
+                  onChangeText={setName}
+                  placeholder={t("enterName")}
+                  placeholderTextColor="#767683"
+                />
+              </View>
 
-            <View className="mb-8">
-              <Text className="mb-2 text-base font-medium text-corp-grey">
-                {t("description")}
-              </Text>
-              <TextInput
-                className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
-                value={description}
-                onChangeText={setDescription}
-                placeholder={t("enterDescription")}
-                placeholderTextColor="#767683"
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
+              <TagInput
+                tags={tags}
+                newTag={newTag}
+                onNewTagChange={setNewTag}
+                onAddTag={addTag}
+                onRemoveTag={removeTag}
               />
+
+              <View>
+                <Text className="mb-2 text-base font-medium text-corp-grey">
+                  {t("description")}
+                </Text>
+                <TextInput
+                  className="w-full rounded-lg border border-corp-mid-grey px-4 py-3 text-corp-grey"
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder={t("enterDescription")}
+                  placeholderTextColor="#767683"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
             </View>
 
-            <View className="mb-8 flex-row">
+            <View className="mb-8 flex-row gap-3">
               <Button
                 title={t("cancel")}
                 onPress={() => router.dismiss()}
                 type="secondary"
-                className="mr-2 flex-1 border border-corp-grey bg-white"
+                className="flex-1"
               />
               <Button
                 title={isEditing ? t("update") : t("save")}
                 onPress={handleSave}
-                className="ml-2 flex-1 bg-corp-dark-teal"
+                className="flex-1"
               />
             </View>
           </ScrollView>

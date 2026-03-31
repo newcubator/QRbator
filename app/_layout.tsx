@@ -3,18 +3,12 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { DB_NAME } from "@/core/qrCodeStorage";
-import * as SQLite from "expo-sqlite";
 import { Suspense } from "react";
 import "../global.css";
 import "../translation";
 
-const dbPromise = SQLite.openDatabaseSync(DB_NAME);
-
 export default function Layout() {
   const { t } = useTranslation();
-
-  // useDrizzleStudio(dbPromise);
 
   return (
     <Suspense fallback={<ActivityIndicator />}>
@@ -22,13 +16,17 @@ export default function Layout() {
         <Stack
           screenOptions={{
             headerTintColor: "#50505E",
+            headerBackTitle: t("back"),
+            contentStyle: {
+              backgroundColor: "#FFFFFF",
+            },
           }}
         >
           <Stack.Screen
             name="home"
             options={{
               headerShown: false,
-              title: t("qrOrganizer"),
+              title: t("qrCodes"),
             }}
           />
           <Stack.Screen
@@ -37,6 +35,10 @@ export default function Layout() {
               title: t("scanQRCode"),
               headerShown: true,
               presentation: "formSheet",
+              sheetGrabberVisible: true,
+              contentStyle: {
+                backgroundColor: "#FFFFFF",
+              },
             }}
           />
           <Stack.Screen
@@ -44,7 +46,6 @@ export default function Layout() {
             options={{
               title: t("tab-settings"),
               headerShown: true,
-              headerBackTitle: t("back"),
             }}
           />
           <Stack.Screen
@@ -53,9 +54,9 @@ export default function Layout() {
               title: t("addEditQR"),
               headerShown: true,
               presentation: "formSheet",
+              sheetGrabberVisible: true,
               contentStyle: {
                 backgroundColor: "#FFFFFF",
-                height: "100%",
               },
             }}
           />
@@ -63,7 +64,6 @@ export default function Layout() {
             name="details"
             options={{
               headerShown: true,
-              headerBackTitle: t("back"),
             }}
           />
           <Stack.Screen

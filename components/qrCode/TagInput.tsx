@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 interface TagInputProps {
   tags: string[];
@@ -24,16 +24,17 @@ export const TagInput = ({
       <Text className="mb-2 text-base font-medium text-corp-grey">
         {t("tags")}
       </Text>
-      <View className="mb-2 flex-row flex-wrap">
+      <View className="mb-3 flex-row flex-wrap">
         {tags.map((tag) => (
-          <TouchableOpacity
+          <Pressable
             key={tag}
             onPress={() => onRemoveTag(tag)}
-            className="m-1 flex-row items-center rounded-full border border-corp-teal bg-white px-3 py-1"
+            className="mb-2 mr-2 flex-row items-center rounded-full border border-corp-mid-grey bg-corp-white px-3 py-2"
+            style={({ pressed }) => (pressed ? { opacity: 0.8 } : null)}
           >
             <Text className="mr-1 text-corp-grey">{tag}</Text>
             <Ionicons name="close-circle" size={16} color="#50505E" />
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
       <View className="flex-row">
@@ -45,12 +46,13 @@ export const TagInput = ({
           placeholderTextColor="#767683"
           onSubmitEditing={onAddTag}
         />
-        <TouchableOpacity
-          className="ml-2 items-center justify-center rounded-lg bg-corp-teal px-4"
+        <Pressable
+          className="ml-2 items-center justify-center rounded-2xl bg-corp-teal px-4"
           onPress={onAddTag}
+          style={({ pressed }) => (pressed ? { opacity: 0.84 } : null)}
         >
           <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

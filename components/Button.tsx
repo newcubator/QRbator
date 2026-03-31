@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"; // Assuming Ionicons are used based on home.tsx
 import React from "react";
-import { Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { Pressable, Text, TextStyle, ViewStyle } from "react-native";
 
 interface ButtonProps {
   title: string;
@@ -27,7 +27,6 @@ export const Button: React.FC<ButtonProps> = ({
   type = "primary",
   disabled = false,
 }) => {
-  const isPrimary = type === "primary";
   const isSecondary = type === "secondary";
   const isDanger = type === "danger";
 
@@ -51,19 +50,24 @@ export const Button: React.FC<ButtonProps> = ({
   const opacity = disabled ? "opacity-50" : "opacity-100";
 
   return (
-    <TouchableOpacity
-      style={[style]}
+    <Pressable
+      style={({ pressed }) => [
+        style,
+        !disabled && pressed ? { opacity: 0.84 } : null,
+      ]}
       className={`flex-row items-center justify-center rounded-lg px-4 py-3 ${bgColor} ${border} ${opacity} ${
         className || ""
       }`}
       onPress={onPress}
-      activeOpacity={disabled ? 1 : 0.7}
       disabled={disabled}
     >
       {icon && <Ionicons name={icon} size={iconSize} color={finalIconColor} />}
-      <Text style={[textStyle]} className={`ml-2 font-semibold ${textColor}`}>
+      <Text
+        style={[textStyle]}
+        className={`${icon ? "ml-2" : ""} font-semibold ${textColor}`}
+      >
         {title}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
