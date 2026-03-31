@@ -16,13 +16,17 @@ export default function Layout() {
         <Stack
           screenOptions={{
             headerTintColor: "#50505E",
+            headerBackTitle: t("back"),
+            contentStyle: {
+              backgroundColor: "#FFFFFF",
+            },
           }}
         >
           <Stack.Screen
             name="home"
             options={{
               headerShown: false,
-              title: t("qrOrganizer"),
+              title: t("qrCodes"),
             }}
           />
           <Stack.Screen
@@ -42,7 +46,6 @@ export default function Layout() {
             options={{
               title: t("tab-settings"),
               headerShown: true,
-              headerBackTitle: t("back"),
             }}
           />
           <Stack.Screen
@@ -61,7 +64,6 @@ export default function Layout() {
             name="details"
             options={{
               headerShown: true,
-              headerBackTitle: t("back"),
             }}
           />
           <Stack.Screen

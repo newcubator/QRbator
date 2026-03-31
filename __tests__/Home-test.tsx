@@ -15,6 +15,9 @@ jest.mock("expo-router", () => ({
     push: jest.fn(),
     replace: jest.fn(),
   },
+  Stack: {
+    Screen: jest.fn().mockImplementation(() => null),
+  },
   useFocusEffect: jest.fn((callback) => {
     const React = require("react");
     React.useEffect(callback, []);
@@ -37,7 +40,7 @@ describe("<HomeScreen />", () => {
 
     await waitFor(
       () => {
-        expect(getByText("qrCodes")).toBeTruthy();
+        expect(getByText("noQRCodes")).toBeTruthy();
       },
       { timeout: 5000 },
     );

@@ -2,26 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { File, Paths } from "expo-file-system";
 import * as Linking from "expo-linking";
-import {
-  Stack,
-  router,
-  useLocalSearchParams,
-} from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Sharing from "expo-sharing";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  ScrollView,
-  Share,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, Pressable, ScrollView, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
+
 import { Button } from "~/components/Button";
 import { QRCodeEntry } from "~/core/qrCode";
 import { deleteQRCode, getQRCodeById } from "~/core/qrCodeStorage";
@@ -31,36 +19,77 @@ import {
   serializeQRCodesToCsv,
 } from "~/core/qrCodeUtils";
 
+function DetailSection({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <View className="mb-6">
+      <Text className="mb-2 text-sm font-medium uppercase tracking-wide text-corp-grey">
+        {label}
+      </Text>
+      <View className="rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
+        {children}
+      </View>
+    </View>
+  );
+}
+
+function ActionRow({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof (typeof Ionicons)["glyphMap"];
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center px-4 py-4"
+      style={({ pressed }) => (pressed ? { opacity: 0.78 } : null)}
+    >
+      <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-corp-light-grey">
+        <Ionicons name={icon} size={18} color="#50505E" />
+      </View>
+      <Text className="flex-1 font-medium text-corp-grey">{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#979797" />
+    </Pressable>
+  );
+}
+
 export default function QRCodeDetailScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const [qrCode, setQrCode] = useState<QRCodeEntry | null>(null);
   const [isContentTooLarge, setIsContentTooLarge] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [canOpenUrl, setCanOpenUrl] = useState(false);
 
   const fetchQRCode = useCallback(async () => {
-    if (params.id) {
-      setLoading(true);
-      try {
-        const data = await getQRCodeById(params.id);
-
-        setIsContentTooLarge(
-          Boolean(
-            data?.content && data.content.length >= MAX_QR_CONTENT_LENGTH,
-          ),
-        );
-        setQrCode(data);
-      } catch (error) {
-        console.error("Error fetching QR code:", error);
-        setQrCode(null);
-        setIsContentTooLarge(false);
-        Alert.alert(t("error"), t("fetchFailed"));
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      console.warn("No ID provided to details screen.");
+    if (!params.id) {
       setQrCode(null);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await getQRCodeById(params.id);
+      setIsContentTooLarge(
+        Boolean(data?.content && data.content.length >= MAX_QR_CONTENT_LENGTH),
+      );
+      setQrCode(data);
+    } catch (error) {
+      console.error("Error fetching QR code:", error);
+      setQrCode(null);
+      setIsContentTooLarge(false);
+      Alert.alert(t("error"), t("fetchFailed"));
+    } finally {
+      setLoading(false);
     }
   }, [params.id, t]);
 
@@ -72,17 +101,12 @@ export default function QRCodeDetailScreen() {
 
   const isValidUrl = useCallback(
     async (text: string, type?: string): Promise<boolean> => {
-      if (type === "text") return false;
-
-      if (!text) return false;
-
-      const hasHttpProtocol =
-        text.startsWith("http://") || text.startsWith("https://");
-
-      const textToCheck = hasHttpProtocol ? text : `https://${text}`;
+      if (!text || type === "text") {
+        return false;
+      }
 
       try {
-        return await Linking.canOpenURL(textToCheck);
+        return await Linking.canOpenURL(normalizeOpenableUrl(text));
       } catch {
         return false;
       }
@@ -90,50 +114,56 @@ export default function QRCodeDetailScreen() {
     [],
   );
 
-  const [canOpenUrl, setCanOpenUrl] = useState(false);
-
   useEffect(() => {
     if (qrCode?.content) {
       isValidUrl(qrCode.content, qrCode.type).then(setCanOpenUrl);
     } else {
       setCanOpenUrl(false);
     }
-  }, [qrCode, isValidUrl]);
+  }, [isValidUrl, qrCode]);
 
   const handleOpenUrl = async () => {
-    if (qrCode?.content) {
-      try {
-        await Linking.openURL(normalizeOpenableUrl(qrCode.content));
-      } catch (error) {
-        console.error("Error opening URL:", error);
-        Alert.alert(t("error"), t("failedToOpenUrl"));
-      }
+    if (!qrCode?.content) {
+      return;
+    }
+
+    try {
+      await Linking.openURL(normalizeOpenableUrl(qrCode.content));
+    } catch (error) {
+      console.error("Error opening URL:", error);
+      Alert.alert(t("error"), t("failedToOpenUrl"));
     }
   };
 
   const handleCopyContent = async () => {
-    if (qrCode) {
-      await Clipboard.setStringAsync(qrCode.content);
-      Alert.alert(t("success"), t("contentCopied"));
+    if (!qrCode) {
+      return;
     }
+
+    await Clipboard.setStringAsync(qrCode.content);
+    Alert.alert(t("success"), t("contentCopied"));
   };
 
   const handleShare = async () => {
-    if (qrCode) {
-      try {
-        await Share.share({
-          message: qrCode.content,
-          title: qrCode.name,
-        });
-      } catch (error) {
-        console.error("Error sharing QR code:", error);
-        Alert.alert(t("error"), t("shareFailed"));
-      }
+    if (!qrCode) {
+      return;
+    }
+
+    try {
+      await Share.share({
+        message: qrCode.content,
+        title: qrCode.name,
+      });
+    } catch (error) {
+      console.error("Error sharing QR code:", error);
+      Alert.alert(t("error"), t("shareFailed"));
     }
   };
 
   const handleExport = async (format: "json" | "csv") => {
-    if (!qrCode) return;
+    if (!qrCode) {
+      return;
+    }
 
     try {
       const fileName = `qrcode_${qrCode.id}.${format}`;
@@ -167,309 +197,197 @@ export default function QRCodeDetailScreen() {
         text: t("delete"),
         style: "destructive",
         onPress: async () => {
-          if (qrCode) {
-            try {
-              await deleteQRCode(qrCode.id);
-              router.replace("/home");
-            } catch (error) {
-              console.error("Error deleting QR code:", error);
-              Alert.alert(t("error"), t("deleteFailed"));
-            }
+          if (!qrCode) {
+            return;
+          }
+
+          try {
+            await deleteQRCode(qrCode.id);
+            router.replace("/home");
+          } catch (error) {
+            console.error("Error deleting QR code:", error);
+            Alert.alert(t("error"), t("deleteFailed"));
           }
         },
       },
     ]);
   };
 
-  const handleEdit = () => {
-    if (qrCode) {
-      router.push({
-        pathname: "/add-edit",
-        params: { id: qrCode.id },
-      });
-    }
-  };
-
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-corp-white">
+      <View className="flex-1 items-center justify-center bg-corp-white">
         <Text>{t("loading")}</Text>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!qrCode) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-corp-white">
+      <View className="flex-1 items-center justify-center bg-corp-white px-6">
         <Text>{t("qrCodeNotFound")}</Text>
         <Button
           title={t("goBack")}
           onPress={() => router.replace("/home")}
           className="mt-4"
         />
-      </SafeAreaView>
-    );
-  }
-
-  if (isContentTooLarge) {
-    return (
-      <SafeAreaView className="flex-1 bg-corp-white pb-4">
-        <Stack.Screen
-          options={{
-            title: qrCode.name,
-          }}
-        />
-        <ScrollView
-          className="flex-1 px-6 py-4"
-          contentInsetAdjustmentBehavior="automatic"
-        >
-          <View className="mb-6 rounded-lg border border-corp-mid-grey bg-corp-light-grey p-4">
-            <Text className="text-center text-corp-grey" selectable>
-              {t("contentTooLarge", { maxLength: MAX_QR_CONTENT_LENGTH })}
-            </Text>
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("name")}
-            </Text>
-            <Text className="text-xl font-bold text-corp-grey" selectable>
-              {qrCode.name}
-            </Text>
-          </View>
-
-          <View className="mb-8">
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("content")}
-            </Text>
-            <View className="rounded-lg border border-corp-mid-grey bg-white p-4">
-              <Text className="text-corp-grey" selectable>
-                {qrCode.content}
-              </Text>
-            </View>
-          </View>
-
-          <Button title={t("edit")} onPress={handleEdit} className="mb-4" />
-          <Button title={t("goBack")} onPress={() => router.replace("/home")} />
-        </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white pb-4">
-      <Stack.Screen
-        options={{
-          title: qrCode ? qrCode.name : t("qrDetails"),
-        }}
-      />
+    <>
       <ScrollView
-        className="flex-1 px-6 py-4"
+        className="flex-1 bg-corp-white"
         contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 16,
+          paddingBottom: 40,
+        }}
       >
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(100)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mb-8 items-center"
-        >
-          <View className="rounded-lg bg-corp-white p-4 shadow-md border border-corp-mid-grey">
-            <QRCode
-              value={qrCode.content || ""}
-              size={200}
-              backgroundColor="#FFFFFF"
-              color="#000000"
-            />
-          </View>
-        </Animated.View>
+        <View className="mb-8 items-center">
+          {isContentTooLarge ? (
+            <View className="w-full rounded-3xl border border-corp-mid-grey bg-corp-light-grey p-4">
+              <Text className="text-center text-corp-grey" selectable>
+                {t("contentTooLarge", { maxLength: MAX_QR_CONTENT_LENGTH })}
+              </Text>
+            </View>
+          ) : (
+            <View className="rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
+              <QRCode
+                value={qrCode.content || ""}
+                size={200}
+                backgroundColor="#FFFFFF"
+                color="#000000"
+              />
+            </View>
+          )}
+        </View>
 
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(200)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mb-6"
-        >
-          <Text className="mb-2 text-base font-medium text-corp-grey">
-            {t("name")}
-          </Text>
-          <Text className="text-xl font-bold text-corp-grey">
+        <DetailSection label={t("name")}>
+          <Text className="text-xl font-semibold text-corp-grey" selectable>
             {qrCode.name}
           </Text>
-        </Animated.View>
+        </DetailSection>
 
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(250)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mb-6"
-        >
-          <Text className="mb-2 text-base font-medium text-corp-grey">
-            {t("qrCodeType")}
-          </Text>
+        <DetailSection label={t("qrCodeType")}>
           <View className="flex-row items-center">
             <Ionicons
               name={
                 qrCode.type === "url"
-                  ? "link"
+                  ? "link-outline"
                   : qrCode.type === "vcard"
-                    ? "person"
+                    ? "person-outline"
                     : qrCode.type === "email"
-                      ? "mail"
-                      : "text"
+                      ? "mail-outline"
+                      : qrCode.type === "wifi"
+                        ? "wifi-outline"
+                        : "text-outline"
               }
-              size={20}
+              size={18}
               color="#50505E"
               style={{ marginRight: 8 }}
             />
-            <Text className="text-lg font-medium text-corp-grey uppercase">
+            <Text className="font-medium uppercase text-corp-grey">
               {qrCode.type || "text"}
             </Text>
           </View>
-        </Animated.View>
+        </DetailSection>
 
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(300)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mb-6"
-        >
-          <Text className="mb-2 text-base font-medium text-corp-grey">
-            {t("content")}
+        <DetailSection label={t("content")}>
+          <Text className="text-corp-grey" selectable>
+            {qrCode.content}
           </Text>
-          <View className="rounded-lg border border-corp-mid-grey bg-white p-4">
+        </DetailSection>
+
+        {qrCode.description ? (
+          <DetailSection label={t("description")}>
             <Text className="text-corp-grey" selectable>
-              {qrCode.content}
+              {qrCode.description}
             </Text>
-          </View>
-        </Animated.View>
+          </DetailSection>
+        ) : null}
 
-        {qrCode.description && (
-          <Animated.View
-            entering={FadeInDown.duration(400)
-              .delay(400)
-              .reduceMotion(ReduceMotion.Never)}
-            className="mb-6"
-          >
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("description")}
-            </Text>
-            <Text className="text-corp-grey">{qrCode.description}</Text>
-          </Animated.View>
-        )}
-
-        {qrCode.tags.length > 0 && (
-          <Animated.View
-            entering={FadeInDown.duration(400)
-              .delay(500)
-              .reduceMotion(ReduceMotion.Never)}
-            className="mb-8"
-          >
-            <Text className="mb-2 text-base font-medium text-corp-grey">
-              {t("tags")}
-            </Text>
+        {qrCode.tags.length > 0 ? (
+          <DetailSection label={t("tags")}>
             <View className="flex-row flex-wrap">
               {qrCode.tags.map((tag) => (
                 <View
                   key={tag}
-                  className="mr-2 mt-1 rounded-full border border-corp-grey bg-white px-2 py-1"
+                  className="mb-2 mr-2 rounded-full border border-corp-mid-grey bg-corp-white px-3 py-1.5"
                 >
                   <Text className="text-xs text-corp-grey">{tag}</Text>
                 </View>
               ))}
             </View>
-          </Animated.View>
-        )}
+          </DetailSection>
+        ) : null}
 
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(600)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mb-8"
-        >
-          <Text className="mb-4 text-lg font-medium text-corp-grey">
+        <View className="mb-8">
+          <Text className="mb-2 text-sm font-medium uppercase tracking-wide text-corp-grey">
             {t("actions")}
           </Text>
-          <View className="flex-row flex-wrap justify-between">
-            <TouchableOpacity
+          <View className="overflow-hidden rounded-3xl border border-corp-mid-grey bg-corp-white">
+            <ActionRow
+              icon="copy-outline"
+              label={t("copyContent")}
               onPress={handleCopyContent}
-              className="mb-4 w-[48%] flex-row items-start justify-center rounded-lg bg-corp-grey p-4"
-            >
-              <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
-              <Text className="ml-2 text-center font-medium text-white">
-                {t("copyContent")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
+            />
+            <View className="border-b border-corp-light-grey" />
+            <ActionRow
+              icon="share-outline"
+              label={t("shareContent")}
               onPress={handleShare}
-              className="mb-4 w-[48%] flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
-            >
-              <Ionicons name="share-outline" size={18} color="#FFFFFF" />
-              <Text className="ml-2 text-center font-medium text-white">
-                {t("shareContent")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
+            />
+            <View className="border-b border-corp-light-grey" />
+            <ActionRow
+              icon="document-text-outline"
+              label={t("exportJson")}
               onPress={() => handleExport("json")}
-              className="w-[48%] flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color="#FFFFFF"
-              />
-              <Text className="ml-2 text-center font-medium text-white">
-                {t("exportJson")}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
+            />
+            <View className="border-b border-corp-light-grey" />
+            <ActionRow
+              icon="grid-outline"
+              label={t("exportCsv")}
               onPress={() => handleExport("csv")}
-              className="w-[48%] flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
-            >
-              <Ionicons name="grid-outline" size={18} color="#FFFFFF" />
-              <Text className="ml-2 text-center font-medium text-white">
-                {t("exportCsv")}
-              </Text>
-            </TouchableOpacity>
-
-            {canOpenUrl && (
-              <TouchableOpacity
-                onPress={handleOpenUrl}
-                className="mt-4 w-full flex-row items-center justify-center rounded-lg bg-corp-grey p-4"
-              >
-                <Ionicons name="open-outline" size={18} color="#FFFFFF" />
-                <Text className="ml-2 text-center font-medium text-white">
-                  {t("open")}
-                </Text>
-              </TouchableOpacity>
-            )}
+            />
+            {canOpenUrl ? (
+              <>
+                <View className="border-b border-corp-light-grey" />
+                <ActionRow
+                  icon="open-outline"
+                  label={t("open")}
+                  onPress={handleOpenUrl}
+                />
+              </>
+            ) : null}
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View
-          entering={FadeInDown.duration(400)
-            .delay(700)
-            .reduceMotion(ReduceMotion.Never)}
-          className="mt-4"
-        >
-          <Button
-            title={t("edit")}
-            onPress={handleEdit}
-            className="mb-4"
-            icon="create-outline"
-          />
-
-          <Button
-            title={t("delete")}
-            onPress={handleDelete}
-            className="mb-8"
-            type="danger"
-            icon="trash-outline"
-          />
-        </Animated.View>
+        <Button
+          title={t("edit")}
+          onPress={() =>
+            router.push({
+              pathname: "/add-edit",
+              params: { id: qrCode.id },
+            })
+          }
+          className="mb-3"
+          icon="create-outline"
+        />
+        <Button
+          title={t("delete")}
+          onPress={handleDelete}
+          type="danger"
+          icon="trash-outline"
+        />
       </ScrollView>
-    </SafeAreaView>
+      <Stack.Screen
+        options={{
+          title: qrCode.name,
+          headerShadowVisible: false,
+        }}
+      />
+    </>
   );
 }
