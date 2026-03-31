@@ -7,11 +7,13 @@ jest.mock("expo-router", () => ({
     push: jest.fn(),
     replace: jest.fn(),
     dismiss: jest.fn(),
+    navigate: jest.fn(),
   }),
   router: {
     push: jest.fn(),
     replace: jest.fn(),
     dismiss: jest.fn(),
+    navigate: jest.fn(),
   },
   useFocusEffect: jest.fn((callback) => callback()),
   Stack: {
@@ -53,6 +55,10 @@ jest.mock("@expo/vector-icons", () => {
     createIconSet: () => iconMock,
   };
 });
+
+jest.mock("react-native-worklets", () =>
+  require("react-native-worklets/lib/module/mock"),
+);
 
 jest.mock("react-native-reanimated", () => {
   const Reanimated = require("react-native-reanimated/mock");

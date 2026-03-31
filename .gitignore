@@ -43,3 +43,5 @@ ios
 coverage/**/*
 coverage
 .idea
+
+.claude/settings.local.json

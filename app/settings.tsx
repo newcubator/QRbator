@@ -1,12 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import Papa from "papaparse";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
 import { Button } from "~/components/Button";
 import { QRCodeEntry } from "~/core/qrCode";
@@ -15,6 +14,7 @@ import {
   getAllQRCodes,
   importQRCodes,
 } from "~/core/qrCodeStorage";
+import { parseQRCodesFromCsv, serializeQRCodesToCsv } from "~/core/qrCodeUtils";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -33,31 +33,19 @@ export default function SettingsScreen() {
       const fileName = `qr_codes_export_${
         new Date().toISOString().split("T")[0]
       }.${format}`;
-      const dir = FileSystem.cacheDirectory;
-      if (!dir) {
-        Alert.alert(t("error"), "Could not access cache directory.");
-        return;
-      }
 
       if (format === "json") {
         content = JSON.stringify(codes, null, 2);
       } else {
-        // CSV format
-        const headers = "id,name,content,description,createdAt,tags\n";
-        const rows = codes.map((code) => {
-          const tags = code.tags.join(";");
-          return `"${code.id}","${code.name}","${code.content}","${
-            code.description || ""
-          }","${code.createdAt}","${tags}"`;
-        });
-        content = headers + rows.join("\n");
+        content = serializeQRCodesToCsv(codes);
       }
 
-      const fileUri = `${dir}${fileName}`;
-      await FileSystem.writeAsStringAsync(fileUri, content);
+      const file = new File(Paths.cache, fileName);
+      file.create({ overwrite: true });
+      file.write(content);
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(file.uri);
       } else {
         Alert.alert(t("error"), t("sharingNotAvailable"));
       }
@@ -80,30 +68,21 @@ export default function SettingsScreen() {
 
       const fileUri = result.assets[0].uri;
       const fileName = result.assets[0].name;
-      const fileContent = await FileSystem.readAsStringAsync(fileUri);
+      const fileContent = await new File(fileUri).text();
 
       let qrCodes: QRCodeEntry[] = [];
 
       if (fileName.endsWith(".json")) {
         try {
           qrCodes = JSON.parse(fileContent);
-        } catch (e) {
+        } catch {
           Alert.alert(t("error"), t("importFailed"));
           return;
         }
       } else if (fileName.endsWith(".csv")) {
         try {
-          const results = Papa.parse(fileContent, { header: true });
-          qrCodes = results.data.map((row: any) => ({
-            id: row.id || Date.now().toString(),
-            name: row.name,
-            content: row.content,
-            type: row.type || "text",
-            description: row.description,
-            createdAt: row.createdAt || new Date().toISOString(),
-            tags: row.tags ? row.tags.split(";") : [],
-          }));
-        } catch (e) {
+          qrCodes = parseQRCodesFromCsv(fileContent);
+        } catch {
           Alert.alert(t("error"), t("importFailed"));
           return;
         }
@@ -175,7 +154,10 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-corp-white px-6 py-4">
+    <ScrollView
+      className="flex-1 bg-corp-white px-6 py-4"
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <Animated.View
         entering={FadeInDown.duration(400)
           .delay(400)
@@ -266,6 +248,6 @@ export default function SettingsScreen() {
           className="w-full"
         />
       </Animated.View>
-    </View>
+    </ScrollView>
   );
 }

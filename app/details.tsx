@@ -1,35 +1,41 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import * as Linking from "expo-linking";
 import {
   Stack,
   router,
   useLocalSearchParams,
 } from "expo-router";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 import * as Sharing from "expo-sharing";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
   Share,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import QRCode from "react-native-qrcode-svg";
 import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
 import { Button } from "~/components/Button";
 import { QRCodeEntry } from "~/core/qrCode";
 import { deleteQRCode, getQRCodeById } from "~/core/qrCodeStorage";
+import {
+  MAX_QR_CONTENT_LENGTH,
+  normalizeOpenableUrl,
+  serializeQRCodesToCsv,
+} from "~/core/qrCodeUtils";
 
 export default function QRCodeDetailScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string }>();
   const [qrCode, setQrCode] = useState<QRCodeEntry | null>(null);
+  const [isContentTooLarge, setIsContentTooLarge] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const fetchQRCode = useCallback(async () => {
@@ -37,22 +43,17 @@ export default function QRCodeDetailScreen() {
       setLoading(true);
       try {
         const data = await getQRCodeById(params.id);
-        
-        if (data?.content && data?.content.length >= 5000) {
-          await deleteQRCode(params.id);
-          Alert.alert(
-            t("error"),
-            t("contentTooLarge", { maxLength: 5000 }),
-            [{ text: t("ok"), onPress: () => router.replace("/home") }]
-          );
-          return;
-        }
-  
-        setQrCode(data);
 
+        setIsContentTooLarge(
+          Boolean(
+            data?.content && data.content.length >= MAX_QR_CONTENT_LENGTH,
+          ),
+        );
+        setQrCode(data);
       } catch (error) {
         console.error("Error fetching QR code:", error);
         setQrCode(null);
+        setIsContentTooLarge(false);
         Alert.alert(t("error"), t("fetchFailed"));
       } finally {
         setLoading(false);
@@ -82,7 +83,7 @@ export default function QRCodeDetailScreen() {
 
       try {
         return await Linking.canOpenURL(textToCheck);
-      } catch (e) {
+      } catch {
         return false;
       }
     },
@@ -102,7 +103,7 @@ export default function QRCodeDetailScreen() {
   const handleOpenUrl = async () => {
     if (qrCode?.content) {
       try {
-        await Linking.openURL(qrCode.content);
+        await Linking.openURL(normalizeOpenableUrl(qrCode.content));
       } catch (error) {
         console.error("Error opening URL:", error);
         Alert.alert(t("error"), t("failedToOpenUrl"));
@@ -136,28 +137,17 @@ export default function QRCodeDetailScreen() {
 
     try {
       const fileName = `qrcode_${qrCode.id}.${format}`;
-      const dir = FileSystem.cacheDirectory;
-      if (!dir) {
-        Alert.alert(t("error"), "Could not access cache directory.");
-        return;
-      }
-      let content = "";
+      const content =
+        format === "json"
+          ? JSON.stringify(qrCode, null, 2)
+          : serializeQRCodesToCsv([qrCode]);
 
-      if (format === "json") {
-        content = JSON.stringify(qrCode, null, 2);
-      } else {
-        const headers = "id,name,content,description,createdAt,tags\n";
-        const tags = qrCode.tags.join(";");
-        content = `${headers}"${qrCode.id}","${qrCode.name}","${
-          qrCode.content
-        }","${qrCode.description || ""}","${qrCode.createdAt}","${tags}"`;
-      }
-
-      const fileUri = `${dir}${fileName}`;
-      await FileSystem.writeAsStringAsync(fileUri, content);
+      const file = new File(Paths.cache, fileName);
+      file.create({ overwrite: true });
+      file.write(content);
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(file.uri);
       } else {
         Alert.alert(t("error"), t("sharingNotAvailable"));
       }
@@ -221,6 +211,51 @@ export default function QRCodeDetailScreen() {
     );
   }
 
+  if (isContentTooLarge) {
+    return (
+      <SafeAreaView className="flex-1 bg-corp-white pb-4">
+        <Stack.Screen
+          options={{
+            title: qrCode.name,
+          }}
+        />
+        <ScrollView
+          className="flex-1 px-6 py-4"
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <View className="mb-6 rounded-lg border border-corp-mid-grey bg-corp-light-grey p-4">
+            <Text className="text-center text-corp-grey" selectable>
+              {t("contentTooLarge", { maxLength: MAX_QR_CONTENT_LENGTH })}
+            </Text>
+          </View>
+
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-corp-grey">
+              {t("name")}
+            </Text>
+            <Text className="text-xl font-bold text-corp-grey" selectable>
+              {qrCode.name}
+            </Text>
+          </View>
+
+          <View className="mb-8">
+            <Text className="mb-2 text-base font-medium text-corp-grey">
+              {t("content")}
+            </Text>
+            <View className="rounded-lg border border-corp-mid-grey bg-white p-4">
+              <Text className="text-corp-grey" selectable>
+                {qrCode.content}
+              </Text>
+            </View>
+          </View>
+
+          <Button title={t("edit")} onPress={handleEdit} className="mb-4" />
+          <Button title={t("goBack")} onPress={() => router.replace("/home")} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-corp-white pb-4">
       <Stack.Screen
@@ -228,7 +263,10 @@ export default function QRCodeDetailScreen() {
           title: qrCode ? qrCode.name : t("qrDetails"),
         }}
       />
-      <ScrollView className="flex-1 px-6 py-4">
+      <ScrollView
+        className="flex-1 px-6 py-4"
+        contentInsetAdjustmentBehavior="automatic"
+      >
         <Animated.View
           entering={FadeInDown.duration(400)
             .delay(100)

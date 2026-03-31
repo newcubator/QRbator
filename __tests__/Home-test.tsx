@@ -1,5 +1,4 @@
-import { render, waitFor } from "@testing-library/react-native";
-import HomeScreen from "../app/home";
+import { act, render, waitFor } from "@testing-library/react-native";
 
 const mockInitDB = jest.fn().mockResolvedValue(undefined);
 const mockGetAllQRCodes = jest.fn().mockResolvedValue([]);
@@ -17,7 +16,8 @@ jest.mock("expo-router", () => ({
     replace: jest.fn(),
   },
   useFocusEffect: jest.fn((callback) => {
-    callback();
+    const React = require("react");
+    React.useEffect(callback, []);
     return undefined;
   }),
 }));
@@ -28,7 +28,12 @@ describe("<HomeScreen />", () => {
   });
 
   test("renders QR code title text", async () => {
+    const HomeScreen = require("../app/home").default;
     const { getByText } = render(<HomeScreen />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     await waitFor(
       () => {

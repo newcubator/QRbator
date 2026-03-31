@@ -1,4 +1,5 @@
 import { act, render } from "@testing-library/react-native";
+import { router } from "expo-router";
 import ScanScreen from "../app/scan";
 
 jest.mock("expo-camera", () => ({
@@ -44,6 +45,38 @@ describe("<ScanScreen />", () => {
     });
 
     expect(renderResult.getByText("positionQRCode")).toBeTruthy();
+  });
+
+  test("maps scanned content to an app qr type before navigating", async () => {
+    require("expo-camera").Camera.requestCameraPermissionsAsync.mockResolvedValue(
+      {
+        status: "granted",
+      },
+    );
+
+    render(<ScanScreen />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const cameraProps = require("expo-camera").CameraView.mock.calls.at(-1)[0];
+
+    await act(async () => {
+      cameraProps.onBarcodeScanned({
+        type: "qr",
+        data: "https://example.com",
+      });
+    });
+
+    expect(router.navigate).toHaveBeenCalledWith({
+      pathname: "/add-edit",
+      params: {
+        content: "https://example.com",
+        type: "url",
+        origin: "scan",
+      },
+    });
   });
 
   test("matches snapshot with permission denied", async () => {

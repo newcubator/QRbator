@@ -26,7 +26,7 @@
   "contentLabel": "Content",
   "contentPlaceholder": "QR code data (URL, text, etc.)",
   "contentRequired": "Content cannot be empty.",
-  "contentTooLarge": "QR code content exceeds the maximum allowed size ({{maxLength}} characters) and has been deleted due to technical limitations of QR codes.",
+  "contentTooLarge": "QR code content exceeds the maximum allowed size ({{maxLength}} characters), so the code preview is unavailable.",
   "copiedToClipboard": "Copied to clipboard!",
   "copyContent": "Copy Content",
   "copyContentButton": "Copy Content",

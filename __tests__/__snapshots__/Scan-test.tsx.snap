@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
-<RCTSafeAreaView
-  className="flex-1 items-center justify-center bg-corp-white px-6"
->
+[
   <Text
     className="mb-4 text-center text-lg text-corp-grey"
   >
     noCameraPermission
-  </Text>
+  </Text>,
   <View
     accessibilityState={
       {
@@ -53,6 +51,6 @@ exports[`<ScanScreen /> matches snapshot with permission denied 1`] = `
     >
       goBack
     </Text>
-  </View>
-</RCTSafeAreaView>
+  </View>,
+]
 `;

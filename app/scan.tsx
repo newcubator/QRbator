@@ -1,14 +1,18 @@
 import { Camera, CameraView } from "expo-camera";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { HeaderHeightContext } from "@react-navigation/elements";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "~/components/Button";
+import { inferQRCodeTypeFromContent } from "~/core/qrCodeUtils";
 
 export default function ScanScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const { t } = useTranslation();
+  const headerHeight = useContext(HeaderHeightContext) ?? 0;
 
 
   useEffect(() => {
@@ -31,7 +35,11 @@ export default function ScanScreen() {
 
     router.navigate({
       pathname: "/add-edit",
-      params: { content: data, type, origin: "scan" },
+      params: {
+        content: data,
+        type: inferQRCodeTypeFromContent(data),
+        origin: "scan",
+      },
     });
   };
 
@@ -47,7 +55,10 @@ export default function ScanScreen() {
 
   if (!hasPermission) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-corp-white px-6">
+      <SafeAreaView
+        className="flex-1 items-center justify-center bg-corp-white px-6"
+        edges={["left", "right", "bottom"]}
+      >
         <Text className="mb-4 text-center text-lg text-corp-grey">
           {t("noCameraPermission")}
         </Text>
@@ -57,8 +68,8 @@ export default function ScanScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white">
-      <View className="flex-1">
+    <SafeAreaView className="flex-1 bg-corp-white" edges={["left", "right", "bottom"]}>
+      <View className="flex-1" style={{ marginTop: headerHeight }}>
         <CameraView
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
           barcodeScannerSettings={{
@@ -79,7 +90,7 @@ export default function ScanScreen() {
           style={StyleSheet.absoluteFillObject}
         />
 
-        <View className="absolute bottom-8 left-0 right-0 items-center">
+        <View className="absolute bottom-8 left-0 right-0 items-center px-6">
           {scanned && (
             <Button
               title={t("scanAgain")}
@@ -95,7 +106,7 @@ export default function ScanScreen() {
           />
         </View>
 
-        <View className="absolute left-0 right-0 top-0 items-center bg-black/50 p-4">
+        <View className="absolute left-0 right-0 top-0 items-center bg-black/50 px-4 py-3">
           <Text className="text-center text-corp-white">
             {t("positionQRCode")}
           </Text>

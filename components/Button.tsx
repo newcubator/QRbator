@@ -27,7 +27,6 @@ export const Button: React.FC<ButtonProps> = ({
   type = "primary",
   disabled = false,
 }) => {
-  const isPrimary = type === "primary";
   const isSecondary = type === "secondary";
   const isDanger = type === "danger";
 

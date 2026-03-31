@@ -37,7 +37,9 @@ export default function HomeScreen() {
       try {
         await initDB();
         setIsInitialized(true);
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error initializing database:", error);
+      }
     };
     init();
   }, []);
@@ -196,6 +198,7 @@ export default function HomeScreen() {
         data={qrCodes}
         keyExtractor={(item) => item.id}
         renderItem={renderQRCodeItem}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="pb-5"
         className="flex-1"
         refreshControl={

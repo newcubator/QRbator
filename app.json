@@ -2,26 +2,26 @@
   "expo": {
     "name": "QRbator",
     "slug": "qrbator",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "QRbator",
+    "scheme": "qrbator",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "de.newcubator.QRbator",
-      "versionCode": 3,
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
         "usesNonExemptEncryption": false
       },
-      "appleTeamId": "8AF5S7C42H"
+      "appleTeamId": "8AF5S7C42H",
+      "appStoreUrl": "https://apps.apple.com/app/6745259686"
     },
     "android": {
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -30,7 +30,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=de.newcubator.QRbator"
     },
     "web": {
       "bundler": "metro",
@@ -61,7 +62,8 @@
       ],
       "expo-sqlite",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

@@ -6,18 +6,21 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "~/components/Button";
-import { FormProvider, TagInput, TypeSelector } from "~/components/qrCode";
+import { FormProvider } from "~/components/qrCode/FormProvider";
+import { TagInput } from "~/components/qrCode/TagInput";
+import { TypeSelector } from "~/components/qrCode/TypeSelector";
 import { QRCodeEntry } from "~/core/qrCode";
 import { addQRCode, getQRCodeById, updateQRCode } from "~/core/qrCodeStorage";
+import { resolveQRCodeType } from "~/core/qrCodeUtils";
+import { checkAndRequestStoreReview } from "~/core/storeReview";
 
 export default function AddEditQRCodeScreen() {
   const { t } = useTranslation();
@@ -28,8 +31,6 @@ export default function AddEditQRCodeScreen() {
     origin?: string;
   }>();
 
-  const { top } = useSafeAreaInsets();
-
   const [name, setName] = useState("");
   const [content, setContent] = useState(params.content || "");
   const [description, setDescription] = useState("");
@@ -37,9 +38,9 @@ export default function AddEditQRCodeScreen() {
   const [newTag, setNewTag] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [qrCodeType, setQRCodeType] = useState<
-    "url" | "vcard" | "text" | "email" | "wifi"
-  >((params.type as "url" | "vcard" | "text" | "email" | "wifi") || "text");
+  const [qrCodeType, setQRCodeType] = useState(() =>
+    resolveQRCodeType(params.type, params.content),
+  );
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -81,7 +82,7 @@ export default function AddEditQRCodeScreen() {
             setTags(qrCode.tags);
 
             if (qrCode.type) {
-              setQRCodeType(qrCode.type);
+              setQRCodeType(resolveQRCodeType(qrCode.type, qrCode.content));
 
               if (qrCode.type === "url") {
                 setUrl(qrCode.content);
@@ -223,6 +224,7 @@ export default function AddEditQRCodeScreen() {
         await updateQRCode(qrCode);
       } else {
         await addQRCode(qrCode);
+        await checkAndRequestStoreReview();
       }
 
       router.replace("/home");
@@ -252,7 +254,7 @@ export default function AddEditQRCodeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-corp-white" style={{ paddingTop: top }}>
+    <SafeAreaView className="flex-1 bg-corp-white" edges={["left", "right", "bottom"]}>
       <Stack.Screen
         options={{
           title: isEditing ? t("editQRCode") : t("addQRCode"),
@@ -266,7 +268,8 @@ export default function AddEditQRCodeScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
             className="flex-1 px-6 py-4"
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentInsetAdjustmentBehavior="automatic"
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 12 }}
             showsVerticalScrollIndicator={true}
           >
             {!isEditing && (
