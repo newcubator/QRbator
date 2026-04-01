@@ -8,6 +8,7 @@ import * as Sharing from "expo-sharing";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, Share, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import QRCode from "react-native-qrcode-svg";
 
 import { Button } from "~/components/Button";
@@ -64,6 +65,7 @@ function ActionRow({
 
 export default function QRCodeDetailScreen() {
   const { t } = useTranslation();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id: string }>();
   const [qrCode, setQrCode] = useState<QRCodeEntry | null>(null);
   const [isContentTooLarge, setIsContentTooLarge] = useState(false);
@@ -242,7 +244,7 @@ export default function QRCodeDetailScreen() {
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: 16,
-          paddingBottom: 40,
+          paddingBottom: Math.max(40, bottomInset + 24),
         }}
       >
         <View className="mb-8 items-center">
