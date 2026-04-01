@@ -44,5 +44,4 @@ coverage/**/*
 coverage
 .idea
 
-.claude/settings.local.json
 build-output/*
