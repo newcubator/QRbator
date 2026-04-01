@@ -245,6 +245,96 @@ export default function AddEditQRCodeScreen() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const handleContentChange = (value: string) => {
+    setContent(value);
+    setUrl(value);
+  };
+
+  const handleUrlChange = (value: string) => {
+    setUrl(value);
+    setContent(value);
+  };
+
+  const hasDraftForType = (type: typeof qrCodeType) => {
+    switch (type) {
+      case "url":
+        return url.trim().length > 0;
+      case "vcard":
+        return [
+          firstName,
+          lastName,
+          mobile,
+          phone,
+          fax,
+          email,
+          company,
+          jobTitle,
+          street,
+          city,
+          zip,
+          state,
+          country,
+          website,
+        ].some((value) => value.trim().length > 0);
+      case "email":
+        return [emailAddress, emailSubject, emailMessage].some(
+          (value) => value.trim().length > 0,
+        );
+      case "wifi":
+        return (
+          ssid.trim().length > 0 ||
+          password.trim().length > 0 ||
+          isHidden ||
+          encryption !== "WPA"
+        );
+      case "text":
+      default:
+        return content.trim().length > 0;
+    }
+  };
+
+  const applyTypeSelect = (nextType: typeof qrCodeType) => {
+    setQRCodeType(nextType);
+  };
+
+  const handleTypeSelect = (nextType: typeof qrCodeType) => {
+    if (nextType === qrCodeType) {
+      return;
+    }
+
+    const isCompatibleSwitch =
+      (qrCodeType === "text" && nextType === "url") ||
+      (qrCodeType === "url" && nextType === "text");
+
+    if (isCompatibleSwitch) {
+      applyTypeSelect(nextType);
+      return;
+    }
+
+    if (hasDraftForType(qrCodeType) && !hasDraftForType(nextType)) {
+      Alert.alert(
+        t("switchQrTypeTitle"),
+        t("switchQrTypeMessage", {
+          currentType: qrCodeType.toUpperCase(),
+          nextType: nextType.toUpperCase(),
+        }),
+        [
+          {
+            text: t("cancel"),
+            style: "cancel",
+          },
+          {
+            text: t("switch"),
+            onPress: () => applyTypeSelect(nextType),
+          },
+        ],
+      );
+      return;
+    }
+
+    applyTypeSelect(nextType);
+  };
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-corp-white">
@@ -276,19 +366,19 @@ export default function AddEditQRCodeScreen() {
               <View className="mb-6 rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
                 <TypeSelector
                   selectedType={qrCodeType}
-                  onTypeSelect={setQRCodeType}
+                  onTypeSelect={handleTypeSelect}
                 />
               </View>
             )}
 
             <View className="mb-6 rounded-3xl border border-corp-mid-grey bg-corp-white p-4">
-              <FormProvider
-                type={qrCodeType}
-                content={content}
-                isReadOnly={isEditing || !!params.content}
-                onContentChange={setContent}
-                url={url}
-                onUrlChange={setUrl}
+                <FormProvider
+                  type={qrCodeType}
+                  content={content}
+                  isReadOnly={isEditing || !!params.content}
+                  onContentChange={handleContentChange}
+                  url={url}
+                  onUrlChange={handleUrlChange}
                 emailAddress={emailAddress}
                 emailSubject={emailSubject}
                 emailMessage={emailMessage}

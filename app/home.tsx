@@ -9,6 +9,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   FadeIn,
@@ -64,6 +65,7 @@ function QuickAction({
 
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const { height } = useWindowDimensions();
   const [qrCodes, setQrCodes] = useState<QRCodeEntry[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -267,28 +269,23 @@ export default function HomeScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View className="flex-1 justify-center rounded-3xl border border-corp-mid-grey bg-corp-white px-5 py-6">
-            <View className="mb-4 h-14 w-14 items-center justify-center rounded-full bg-corp-light-grey">
-              <Ionicons name="qr-code-outline" size={24} color="#00A092" />
+          <View
+            className="items-center justify-center px-5"
+            style={{ minHeight: height * 0.5 }}
+          >
+            <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-corp-light-grey">
+              <Ionicons name="qr-code-outline" size={28} color="#00A092" />
             </View>
-            <Text className="text-lg font-semibold text-corp-grey">
+            <Text className="mb-1 text-center text-xl font-semibold text-corp-grey">
               {selectedTag
                 ? t("noQRCodesWithTag", { tag: selectedTag })
                 : t("noQRCodes")}
             </Text>
-            <View className="mt-5 flex-row gap-3">
-              <Button
-                title={t("tab-scanQR")}
-                icon="scan-outline"
-                onPress={() => router.push("/scan")}
-                type="secondary"
-                className="flex-1"
-              />
+            <View className="mt-6 w-full">
               <Button
                 title={t("addQRCode")}
                 icon="add-outline"
                 onPress={() => router.push("/add-edit")}
-                className="flex-1"
               />
             </View>
           </View>

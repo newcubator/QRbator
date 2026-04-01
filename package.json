@@ -12,7 +12,12 @@
     "lint": "expo lint",
     "testDebug": "jest -o --watch --coverage=false",
     "testFinal": "jest",
-    "updateSnapshots": "jest -u --coverage=false"
+    "updateSnapshots": "jest -u --coverage=false",
+    "deploy": "bash scripts/build-and-deploy.sh all",
+    "deploy:ios": "bash scripts/build-and-deploy.sh ios",
+    "deploy:android": "bash scripts/build-and-deploy.sh android",
+    "build:ios": "bash scripts/build-and-deploy.sh ios --skip-submit",
+    "build:android": "bash scripts/build-and-deploy.sh android --skip-submit"
   },
   "jest": {
     "preset": "jest-expo",
